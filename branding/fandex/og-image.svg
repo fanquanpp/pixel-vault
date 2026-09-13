@@ -1,0 +1,61 @@
+<!--
+  FANDEX 社交分享 OG 图源文件（1200 x 630）
+  设计规范：仓库 AGENTS.md：深色几何科技风、装饰一律使用竖条与刻度线（禁点状元素）、直角小圆角
+  变更品牌视觉时：修改本文件后运行 pnpm 脚本 "og"（generate-og.mjs）重新生成 public/og-image.png
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0A0E14"/>
+      <stop offset="1" stop-color="#0E1B24"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#00A6CC"/>
+      <stop offset="1" stop-color="#3DDDFF"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 底色 -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- 几何装饰：右上角网格底纹（细线，克制的 8 项装饰原则内） -->
+  <g stroke="#3DDDFF" stroke-opacity="0.08" stroke-width="1">
+    <path d="M840 0 L1200 0 L1200 360 Z" fill="none"/>
+    <path d="M920 0 L1200 280 M1000 0 L1200 200 M1080 0 L1200 120"/>
+    <path d="M0 630 L360 630 L0 390 Z" fill="none"/>
+  </g>
+
+  <!-- 左侧竖条刻度线（替代点状装饰） -->
+  <g fill="url(#accent)">
+    <rect x="80" y="200" width="6" height="64" />
+    <rect x="94" y="232" width="3" height="32" fill-opacity="0.55"/>
+    <rect x="104" y="246" width="2" height="18" fill-opacity="0.3"/>
+  </g>
+
+  <!-- 品牌字标 -->
+  <text x="132" y="258" font-family="'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif"
+        font-size="112" font-weight="700" letter-spacing="6" fill="#EBEFF3">FANDEX</text>
+
+  <!-- 副标题 -->
+  <text x="134" y="330" font-family="'PingFang SC', 'Microsoft YaHei', sans-serif"
+        font-size="40" font-weight="500" letter-spacing="10" fill="#3DDDFF">零基础全栈自学体系</text>
+
+  <!-- 模块领域条目：竖条 + 文本（工具链 / 前端 / 后端 / 数据库 / 计算机科学 / 云与基础设施） -->
+  <g font-family="'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="26" fill="#9BA8B5">
+    <rect x="136" y="412" width="4" height="30" fill="#00C8F0"/>
+    <text x="154" y="435">前端技术</text>
+    <rect x="300" y="412" width="4" height="30" fill="#00C8F0"/>
+    <text x="318" y="435">后端技术</text>
+    <rect x="464" y="412" width="4" height="30" fill="#00C8F0"/>
+    <text x="482" y="435">数据库</text>
+    <rect x="600" y="412" width="4" height="30" fill="#00C8F0"/>
+    <text x="618" y="435">计算机科学</text>
+    <rect x="790" y="412" width="4" height="30" fill="#00C8F0"/>
+    <text x="808" y="435">云与基础设施</text>
+  </g>
+
+  <!-- 底部基线 -->
+  <rect x="80" y="520" width="1040" height="2" fill="#3DDDFF" fill-opacity="0.25"/>
+  <text x="80" y="566" font-family="'PingFang SC', 'Microsoft YaHei', sans-serif"
+        font-size="22" fill="#5A6B7A" letter-spacing="2">fanquanpp.github.io/FANDEX</text>
+</svg>
