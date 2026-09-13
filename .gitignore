@@ -1,3 +1,38 @@
+# ============================================================
+# PIXEL VAULT — ignore rules
+# Goal: keep the library engine-agnostic and free of OS/editor junk.
+# ============================================================
+
+# --- OS junk: Windows ---
 Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# --- OS junk: macOS ---
 .DS_Store
-desktop.ini
+._*
+.Spotlight-V100
+.Trashes
+
+# --- OS junk: Linux ---
+.directory
+*~
+
+# --- editor / tool cruft ---
+.vscode/
+.idea/
+*.swp
+*.bak
+*.tmp
+
+# --- engine contamination guard ---
+# This library is engine-agnostic. If you drop it into a Godot project,
+# the editor will emit import metadata next to every asset — keep it out.
+*.import
+.godot/
+
+# --- image editor sidecars (sources live here as .aseprite only) ---
+*.psd~
+*.ora~

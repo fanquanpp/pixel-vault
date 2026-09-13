@@ -11,6 +11,8 @@
 
 Professional pixel-art avatars, game UI, tiles and vector icons — every pixel piece ships with its editable **Aseprite source file**. All assets are released under the **MIT License**.
 
+> 文档 / Docs：[内容说明 CONTENT.md](CONTENT.md) · [免责声明 DISCLAIMER.md](DISCLAIMER.md) · [LICENSE](LICENSE)
+
 ---
 
 ## 内容一览 / What's Inside
