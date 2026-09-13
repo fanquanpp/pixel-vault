@@ -2,39 +2,49 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Pixel Vault · 像素素材库</title>
 <meta name="description" content="Pixel Vault — 开源像素艺术素材库：专业头像、游戏 UI、地贴、矢量图标。MIT 协议，自由取用。">
+<meta name="theme-color" content="#1a1c2c">
 <link rel="canonical" href="https://fanquanpp.github.io/pixel-vault/">
+<link rel="icon" href="game/pixel-ui-pack/gem.png" type="image/png">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Pixel Vault">
 <meta property="og:title" content="Pixel Vault · 通用像素素材库">
 <meta property="og:description" content="110+ 专业像素头像 · 游戏 UI 包 · 地贴 · 200+ Aseprite 源文件 · MIT 开源">
 <meta property="og:url" content="https://fanquanpp.github.io/pixel-vault/">
-<meta property="og:image" content="https://fanquanpp.github.io/pixel-vault/branding/social-card.png">
+<meta property="og:image" content="https://fanquanpp.github.io/pixel-vault/branding/site/social-card.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Pixel Vault — pixel art asset library">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Pixel Vault · 通用像素素材库">
 <meta name="twitter:description" content="110+ 专业像素头像 · 游戏 UI 包 · 地贴 · 200+ Aseprite 源文件 · MIT 开源">
-<meta name="twitter:image" content="https://fanquanpp.github.io/pixel-vault/branding/social-card.png">
-<link rel="icon" href="game/pixel-ui-pack/gem.png" type="image/png">
+<meta name="twitter:image" content="https://fanquanpp.github.io/pixel-vault/branding/site/social-card.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<script>
+  (function(){ try {
+    var t = localStorage.getItem("pv-theme");
+    if (!t) t = matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+    document.documentElement.dataset.theme = t;
+  } catch(e){} })();
+</script>
 </head>
 <body>
 <div class="scanlines" aria-hidden="true"></div>
 
 <header class="topbar">
+  <button class="navtoggle" id="navtoggle" aria-label="打开分类菜单">☰</button>
   <a class="brand" href="./">
     <img src="game/pixel-ui-pack/heart-full.png" alt="" class="brand-heart">
     <span class="brand-name">PIXEL<em>VAULT</em></span>
     <span class="brand-sub">像素素材库</span>
   </a>
   <div class="topbar-right">
+    <button class="pill pill-theme" id="theme-toggle" title="切换主题 / toggle theme">◐ 主题</button>
     <span class="pill pill-mit">MIT LICENSE</span>
     <a class="pill pill-gh" href="https://github.com/fanquanpp/pixel-vault" target="_blank" rel="noopener">GITHUB ↗</a>
   </div>
@@ -43,7 +53,7 @@
 <section class="hero">
   <div class="hero-inner">
     <h1 class="hero-title">通用像素素材库</h1>
-    <p class="hero-line">104+ 专业方向像素头像 · 游戏 UI 包 · 地贴 · 300+ Aseprite 源文件 · 全部 MIT</p>
+    <p class="hero-line">104+ 专业方向像素头像 · 游戏 UI 包 · 地贴 · 文件图标 · 300+ Aseprite 源文件 · 全部 MIT</p>
     <div class="stats" id="stats"></div>
   </div>
   <div class="hero-deco" aria-hidden="true">
@@ -51,14 +61,14 @@
     <img src="game/pixel-tiles/water.png" alt="">
     <img src="game/pixel-ui-pack/coin-gold.png" alt="">
     <img src="game/pixel-ui-pack/sword.png" alt="">
-    <img src="game/pixel-ui-pack/gem.png" alt="">
+    <img src="game/pixel-ui-pack-hd/gem.png" alt="">
     <img src="game/pixel-ui-pack/potion.png" alt="">
     <img src="game/pixel-tiles/brick.png" alt="">
   </div>
 </section>
 
 <div class="layout">
-  <aside class="sidebar">
+  <aside class="sidebar" id="sidebar">
     <div class="searchbox">
       <input id="search" type="search" placeholder="搜索素材… / search" autocomplete="off">
     </div>
@@ -68,13 +78,32 @@
       <button class="fbtn" data-f="svg">SVG</button>
       <button class="fbtn" data-f="src">有源文件</button>
     </div>
+    <div class="viewrow">
+      <label class="viewlabel" for="sort">排序</label>
+      <select id="sort" class="sortsel">
+        <option value="name">名称 A→Z</option>
+        <option value="size">体积大→小</option>
+        <option value="dim">尺寸大→小</option>
+        <option value="cat">类别</option>
+      </select>
+    </div>
+    <div class="viewrow">
+      <span class="viewlabel">密度</span>
+      <div class="density" id="density">
+        <button data-d="s" title="紧凑">▪</button>
+        <button data-d="m" class="active" title="标准">▪▪</button>
+        <button data-d="l" title="宽松">▪▪▪</button>
+      </div>
+    </div>
     <nav class="tree" id="tree"></nav>
-    <p class="sidebar-tip">点击素材查看大图 / click an asset</p>
+    <p class="sidebar-tip">点击素材查看大图 · ←→ 切换 · Esc 关闭</p>
   </aside>
+  <div class="scrim" id="scrim" hidden></div>
 
   <main class="main">
     <div class="cat-head" id="cat-head"></div>
-    <div class="grid" id="grid"></div>
+    <div class="grid" id="grid" aria-live="polite"></div>
+    <div class="grid skeleton" id="skeleton" aria-hidden="true"></div>
     <p class="empty" id="empty" hidden>没有匹配的素材 / no match</p>
   </main>
 </div>
@@ -82,20 +111,23 @@
 <footer class="footer">
   <img src="game/pixel-ui-pack/key.png" alt="" class="foot-ico">
   <span>PIXEL VAULT · © 2026 Atian (fanquanpp) · MIT License · 用 Aseprite 手作 / crafted pixel by pixel</span>
-  <img src="game/pixel-ui-pack/heart-full.png" alt="" class="foot-ico">
+  <img src="game/pixel-ui-pack-hd/heart-full.png" alt="" class="foot-ico">
 </footer>
 
 <div class="lightbox" id="lightbox" hidden>
   <div class="lb-backdrop" data-close></div>
-  <figure class="lb-panel">
-    <button class="lb-close" data-close aria-label="close">×</button>
-    <div class="lb-stage checker">
-      <img id="lb-img" src="" alt="">
+  <figure class="lb-panel" role="dialog" aria-modal="true" aria-label="素材预览">
+    <button class="lb-close" id="lb-close" data-close aria-label="关闭">×</button>
+    <div class="lb-stage checker" id="lb-stage">
+      <button class="lb-arrow lb-prev" id="lb-prev" aria-label="上一个">◄</button>
+      <img id="lb-img" src="" alt="" decoding="async">
+      <button class="lb-arrow lb-next" id="lb-next" aria-label="下一个">►</button>
     </div>
     <figcaption class="lb-meta">
       <div class="lb-name-row">
         <h2 id="lb-name"></h2>
         <span class="lb-badge" id="lb-badge"></span>
+        <span class="lb-counter" id="lb-counter"></span>
       </div>
       <div class="lb-tags">
         <span class="tag" id="lb-path"></span>
@@ -104,13 +136,11 @@
       </div>
       <div class="lb-actions">
         <button class="abtn" id="lb-copy">⧉ 复制路径</button>
+        <button class="abtn" id="lb-zoom">⊕ 像素放大</button>
         <a class="abtn" id="lb-download" download>↓ 下载</a>
         <a class="abtn abtn-src" id="lb-src" target="_blank" rel="noopener">◆ Aseprite 源文件</a>
       </div>
-      <div class="lb-nav">
-        <button class="nbtn" id="lb-prev">← PREV</button>
-        <button class="nbtn" id="lb-next">NEXT →</button>
-      </div>
+      <div class="lb-hint">← → 切换 · 点击图片放大 · Esc 关闭 · 移动端左右滑动</div>
     </figcaption>
   </figure>
 </div>
