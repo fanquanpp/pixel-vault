@@ -1,0 +1,13 @@
+# Normalize text files, protect binaries
+* text=auto
+*.png binary
+*.aseprite binary
+*.ico binary
+*.gif binary
+*.jpg binary
+*.svg text
+*.md text
+*.json text
+*.js text
+*.css text
+*.html text

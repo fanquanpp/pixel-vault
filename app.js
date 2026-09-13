@@ -34,10 +34,6 @@ async function boot() {
   bind();
 }
 
-function countType(t) {
-  return MANIFEST.assets.filter((a) => a.type === t).length;
-}
-
 function subLabel(id) {
   const short = id.split("/").slice(1).join("/");
   return short;
