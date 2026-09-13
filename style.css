@@ -51,7 +51,11 @@ html[data-theme="light"] body::after { background: none; }
 }
 .navtoggle {
   display: none; background: var(--panel); color: var(--ink);
-  border: var(--px) solid var(--line); font-size: 16px; padding: 6px 12px; cursor: pointer;
+  border: var(--px) solid var(--line); padding: 9px 12px; cursor: pointer; line-height: 0;
+}
+.navtoggle .bars { display: inline-block; width: 16px; }
+.navtoggle .bars i {
+  display: block; height: 2px; margin: 3px 0; background: var(--ink);
 }
 .brand { display: flex; align-items: baseline; gap: 12px; text-decoration: none; color: var(--ink); }
 .brand-heart { width: 22px; height: 22px; image-rendering: pixelated; transform: translateY(4px); }

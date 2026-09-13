@@ -255,8 +255,8 @@ function bind() {
     const a = currentList[currentIdx];
     try {
       await navigator.clipboard.writeText(a.path);
-      $("lb-copy").textContent = "✓ 已复制";
-      setTimeout(() => ($("lb-copy").textContent = "⧉ 复制路径"), 1200);
+      $("lb-copy").textContent = "已复制";
+      setTimeout(() => ($("lb-copy").textContent = "复制路径"), 1200);
     } catch { $("lb-copy").textContent = a.path; }
   });
   document.addEventListener("keydown", (e) => {

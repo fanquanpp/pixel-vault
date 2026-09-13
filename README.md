@@ -1,4 +1,4 @@
-# 🎮 PIXEL VAULT · 像素素材库
+# PIXEL VAULT · 像素素材库
 
 > 通用全量像素艺术素材库 · A general-purpose pixel-art asset vault
 > **在线浏览 / Browse online:** https://fanquanpp.github.io/pixel-vault/
@@ -13,23 +13,23 @@ Professional pixel-art avatars, game UI, tiles and vector icons — every pixel 
 
 ---
 
-## 📦 内容一览 / What's Inside
+## 内容一览 / What's Inside
 
 | 目录 / Dir | 内容 / Content | 数量 |
 |---|---|---|
 | `avatars/` | 像素专业方向头像（512px，11 大类目）Pixel majors avatars | 110 组 |
 | `game/pixel-ui-pack/` | 16×16 像素 UI 包：红心/金币/宝石/宝箱/按钮/面板 UI pack | 17 件 |
-| `game/pixel-ui-pack-hd/` | ★32×32 精雕 HD 版：心/金币/宝石/钥匙/药水/星（5 阶色带+抖动+镜面高光） | 6 件 |
+| `game/pixel-ui-pack-hd/` | 32×32 精雕 HD 版：心/金币/宝石/钥匙/药水/星（5 阶色带+抖动+镜面高光） | 6 件 |
 | `game/pixel-tiles/` | 16×16 地形贴图：草/土/石/沙/砖/水… Tiles | 8 块 |
 | `game/speed-rouge/` | 平台跳跃游戏全套素材（机关/建筑/关卡/FX/角色）Full platformer set | 170+ |
-| `icons/file-icons/` | ★32×32 开发者文件图标（git/html/css/js/ts/json/md/svg/png/zip/folder/jekyll） | 12 枚 |
+| `icons/file-icons/` | 32×32 开发者文件图标（git/html/css/js/ts/json/md/svg/png/zip/folder/jekyll） | 12 枚 |
 | `icons/vector/` | 扁平矢量图标（SVG，8 组）Flat SVG icons | 72 |
 | `icons/fandex/` | FANDEX 品牌图标母版（master · PWA/apple/ico/favicon） | 9 |
 | `branding/` | og-image、Logo、社交卡片等品牌资产 | 5 |
 
-**头像类目 / Avatar categories:** 计算机软件 · 电子信息 · 机械自动化 · 土木建筑 · 医学健康 · 经济管理 · 人文法学 · 教育体育 · 理学 · 艺术设计 · ★公共服务（新）
+**头像类目 / Avatar categories:** 计算机软件 · 电子信息 · 机械自动化 · 土木建筑 · 医学健康 · 经济管理 · 人文法学 · 教育体育 · 理学 · 艺术设计 · 公共服务（新）
 
-## 🖼️ 预览 / Preview
+## 预览 / Preview
 
 <p align="center">
   <img src="avatars/11-public-service/police.png" width="130" alt="警察学">
@@ -83,7 +83,7 @@ Professional pixel-art avatars, game UI, tiles and vector icons — every pixel 
   <img src="game/pixel-ui-pack/button-normal.png" width="144" alt="">
 </p>
 
-## 🚀 使用 / Usage
+## 使用 / Usage
 
 - **浏览 / Browse:** 打开上方在线展示站，或仓库内 `index.html`（附搜索、分类、灯箱、一键下载）。
 - **取用 / Grab:** 直接下载 PNG/SVG；需要改色改形请下载对应的 `.aseprite` 源文件（带 [Aseprite](https://www.aseprite.org/) 打开即可）。
@@ -95,22 +95,22 @@ Professional pixel-art avatars, game UI, tiles and vector icons — every pixel 
 <img src="pixel-vault/game/pixel-ui-pack/heart-full.png" style="image-rendering:pixelated" width="64">
 ```
 
-## 📁 目录结构 / Structure
+## 目录结构 / Structure
 
 ```
 pixel-vault/
 ├── index.html · style.css · app.js · manifest.json   ← 展示站 showcase site
 ├── avatars/            像素专业头像（11 类目 + legacy）
 ├── game/
-│   ├── pixel-ui-pack/  16×16 UI 包 ★
-│   ├── pixel-tiles/    16×16 地贴 ★
+│   ├── pixel-ui-pack/  16×16 UI 包 
+│   ├── pixel-tiles/    16×16 地贴 
 │   ├── speed-rouge/    平台游戏全套素材
 │   └── bianqv/
 ├── icons/              vector(SVG) · fandex · speed-rouge · j-run
 └── branding/           og-image · logos
 ```
 
-## 📄 协议 / License
+## 协议 / License
 
 [MIT](LICENSE) © 2026 Atian (fanquanpp) — 可自由使用、修改、商用，请保留版权声明。
 
