@@ -4,8 +4,8 @@
 > **在线浏览 / Browse online:** https://fanquanpp.github.io/pixel-vault/
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-63c74d.svg)](LICENSE)
-![Assets](https://img.shields.io/badge/%E5%8F%AF%E8%A7%81%E7%B4%A0%E6%9D%90-382-fee761.svg)
-![Sources](https://img.shields.io/badge/Aseprite_%E6%BA%90%E6%96%87%E4%BB%B6-236-2ce8f5.svg)
+![Assets](https://img.shields.io/badge/%E5%8F%AF%E8%A7%81%E7%B4%A0%E6%9D%90-390-fee761.svg)
+![Sources](https://img.shields.io/badge/Aseprite_%E6%BA%90%E6%96%87%E4%BB%B6-244-2ce8f5.svg)
 
 像素专业头像、游戏 UI、地形贴图、矢量图标 —— 每一件像素作品都附带 **Aseprite 源文件（.aseprite）**，可自由编辑。全部素材以 **MIT 协议** 开源，可自由用于个人与商业项目。
 
@@ -23,6 +23,7 @@ Professional pixel-art avatars, game UI, tiles and vector icons — every pixel 
 | `game/pixel-ui-pack/` | 16×16 像素 UI 包：红心/金币/宝石/宝箱/按钮/面板 UI pack | 17 件 |
 | `game/pixel-ui-pack-hd/` | 32×32 精雕 HD 版：心/金币/宝石/钥匙/药水/星（5 阶色带+抖动+镜面高光） | 6 件 |
 | `game/pixel-tiles/` | 16×16 地形贴图：草/土/石/沙/砖/水… Tiles | 8 块 |
+| `game/pixel-anim/` | 动画帧条：水流/火焰/风/落叶/枯萎/奔跑/烟雾/星光 Animated strips | 8 组 |
 | `game/speed-rouge/` | 平台跳跃游戏全套素材（机关/建筑/关卡/FX/角色）Full platformer set | 151 |
 | `icons/file-icons/` | 32×32 开发者文件图标（git/html/css/js/ts/json/md/svg/png/zip/folder/jekyll） | 12 枚 |
 | `icons/vector/` | 扁平矢量图标（SVG，8 组）Flat SVG icons | 69 |
@@ -105,6 +106,7 @@ pixel-vault/
 ├── game/
 │   ├── pixel-ui-pack/  16×16 UI 包 
 │   ├── pixel-tiles/    16×16 地贴 
+│   ├── pixel-anim/     动画帧条（水流/火焰/风/落叶/枯萎/奔跑）
 │   ├── speed-rouge/    平台游戏全套素材
 │   └── bianqv/
 ├── icons/              vector(SVG) · speed-rouge

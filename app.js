@@ -37,6 +37,7 @@ const SUB_LABELS = {
   "game/pixel-tiles": "像素地贴",
   "game/pixel-ui-pack": "像素 UI 包",
   "game/pixel-ui-pack-hd": "高清 UI 包",
+  "game/pixel-anim": "动画帧条",
   "game/speed-rouge": "平台跳跃素材",
   "icons/file-icons": "文件图标",
   "icons/speed-rouge": "平台跳跃图标",

@@ -1,6 +1,6 @@
 # CONTENT · 内容说明
 
-> Pixel Vault 全部内容的规格、来源与使用方式。统计基于 manifest.json（382 件可见素材 / 236 个 Aseprite 源）。
+> Pixel Vault 全部内容的规格、来源与使用方式。统计基于 manifest.json（390 件可见素材 / 244 个 Aseprite 源）。
 
 ## 总览 / Overview
 
@@ -10,6 +10,7 @@
 | game/pixel-ui-pack/ | 16×16（按钮 48×16、面板 48×48） | .aseprite + .png | 17 件 |
 | game/pixel-ui-pack-hd/ | 32×32 | .aseprite（icon/glyph 层）+ .png | 6 件 |
 | game/pixel-tiles/ | 16×16 | .aseprite + .png | 8 块 |
+| game/pixel-anim/ | 16×16（落叶 32×32），4-8 帧横向帧条 | .aseprite（多帧）+ _strip.png | 8 组 |
 | game/speed-rouge/ | 混合（16px 条带到 6400×1080 关卡层） | .aseprite + .png | 151 |
 | game/bianqv/ | 混合 | .aseprite + .png | 2 |
 | icons/file-icons/ | 32×32 | .aseprite（icon/glyph 两层）+ .png | 12 枚 |
@@ -35,6 +36,16 @@
 
 ### pixel-tiles（16×16 地贴）
 草/土/石/沙/木板/砖/水/雪。细节以 2 像素簇排布（草叶/碎石/波纹），避免孤立杂点；结构性线条全宽或按 8 行周期排布，3×3 平铺验证无缝；砖与石块带手工接缝与受光面。
+
+### pixel-anim（动画帧条）
+水流/火焰/风/落叶/枯萎/奔跑/烟雾/星光八组逐帧动画，导出为横向帧条 `_strip.png`（4-8 帧，帧宽 16 或 32；aseprite 源内逐帧可编辑）。
+- `water-flow`：4 帧无缝循环，光暗波纹线按 4px/帧位移表现流向，白色浪尖点缀
+- `flame`：6 帧火苗循环，上半部剪影左右摆动 + 火星飘散，五阶色带（深红-红-橙-琥珀-黄-白热）
+- `wind-gust`：6 帧阵风，风线拉长-扫过-消散，绿叶粒子同步翻滚
+- `leaves-fall`：8 帧落叶，双叶（绿/琥珀）之字摇摆下落，相位错半周期，无缝循环
+- `plant-wither`：6 帧单向枯萎序列：挺立-垂头-褪色转褐-倒伏落瓣
+- `run-cycle`：6 帧奔跑循环，接触/下压/腾空三关键姿态 × 双摆臂相位，身体随步幅起伏
+- `smoke-puff`：5 帧烟雾上升消散；`sparkle`：4 帧星形闪烁循环
 
 ### speed-rouge（完整平台跳跃项目素材）
 - `buildings/` `geometry/` 建筑与几何地景
