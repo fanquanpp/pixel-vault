@@ -19,7 +19,35 @@ let drawerPushed = false;
 /* ---------- helpers ---------- */
 const human = (b) => b < 1024 ? b + " B" : b < 1048576 ? Math.round(b / 1024) + " KB" : (b / 1048576).toFixed(2) + " MB";
 const encodePath = (p) => p.split("/").map(encodeURIComponent).join("/");
-const subLabel = (id) => id.split("/").slice(1).join("/");
+/* 目录中文名，缺失时回退为路径段 */
+const SUB_LABELS = {
+  "avatars/01-computing-software": "计算机软件",
+  "avatars/02-electronics": "电子信息",
+  "avatars/03-mechatronics": "机械自动化",
+  "avatars/04-civil-architecture": "土木建筑",
+  "avatars/05-medical-health": "医学健康",
+  "avatars/06-econ-management": "经济管理",
+  "avatars/07-humanities-law": "人文法学",
+  "avatars/08-education-sports": "教育体育",
+  "avatars/09-natural-science": "理学",
+  "avatars/10-art-design": "艺术设计",
+  "avatars/11-public-service": "公共服务",
+  "avatars/legacy-black": "旧版黑白",
+  "game/bianqv": "bianqv 素材",
+  "game/pixel-tiles": "像素地贴",
+  "game/pixel-ui-pack": "像素 UI 包",
+  "game/pixel-ui-pack-hd": "高清 UI 包",
+  "game/speed-rouge": "平台跳跃素材",
+  "icons/fandex": "FANDEX 应用图标",
+  "icons/file-icons": "文件图标",
+  "icons/j-run": "J-Run 图标",
+  "icons/speed-rouge": "平台跳跃图标",
+  "icons/vector": "矢量图标",
+  "branding/bianqv": "bianqv 品牌",
+  "branding/fandex": "fandex 品牌",
+  "branding/site": "站点品牌",
+};
+const subLabel = (id) => SUB_LABELS[id] || id.split("/").slice(1).join("/");
 
 /* ---------- boot ---------- */
 async function boot() {
@@ -45,10 +73,10 @@ function removeSkeleton() { $("skeleton").remove(); }
 /* animated stat counters */
 function countUpStats() {
   const targets = [
-    [MANIFEST.total, "可见素材 ASSETS"],
-    [MANIFEST.sourceCount, "ASE 源文件 SOURCES"],
-    [MANIFEST.counts.avatars, "专业头像 AVATARS"],
-    [null, "体积 SIZE", human(MANIFEST.totalBytes)],
+    [MANIFEST.total, "可见素材"],
+    [MANIFEST.sourceCount, "Aseprite 源文件"],
+    [MANIFEST.counts.avatars, "专业头像"],
+    [null, "总大小", human(MANIFEST.totalBytes)],
   ];
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   $("stats").innerHTML = targets.map(([v, l, fixed]) => {
@@ -98,7 +126,7 @@ function matches(a) {
   if (view.filter === "png" && a.type !== "png") return false;
   if (view.filter === "svg" && a.type !== "svg") return false;
   if (view.filter === "src" && !a.source) return false;
-  if (view.q && !(a.name + " " + a.path).toLowerCase().includes(view.q)) return false;
+  if (view.q && !((a.name + " " + a.path + " " + (SUB_LABELS[a.sub] || "")).toLowerCase().includes(view.q))) return false;
   return true;
 }
 function sorted(list) {
@@ -116,15 +144,15 @@ function render() {
   const head = $("cat-head");
   if (view.sub) {
     const cat = view.sub.split("/")[0];
-    head.innerHTML = `<h2>${subLabel(view.sub).toUpperCase()}</h2><p>${MANIFEST.catLabels[cat] || cat} · ${currentList.length} 项</p>`;
+    head.innerHTML = `<h2>${subLabel(view.sub)}</h2><p>${MANIFEST.catLabels[cat] || cat} · ${currentList.length} 项</p>`;
   } else if (view.q) {
     head.innerHTML = `<h2>搜索 “${view.q}”</h2><p>${currentList.length} 项匹配</p>`;
   } else {
-    head.innerHTML = `<h2>全部素材 ALL ASSETS</h2><p>${currentList.length} 项 · MIT License · 可自由使用</p>`;
+    head.innerHTML = `<h2>全部素材</h2><p>${currentList.length} 项 · MIT 协议 · 可自由使用</p>`;
   }
   const grid = $("grid");
   grid.innerHTML = currentList.map((a, i) => {
-    const dims = a.w ? `${a.w}×${a.h}` : "vector";
+    const dims = a.w ? `${a.w}×${a.h}` : "矢量";
     const svgAttr = a.type === "svg" ? ' data-svg="1"' : "";
     return `<div class="card" data-i="${i}" style="animation-delay:${Math.min(i * 10, 200)}ms" tabindex="0" role="button" aria-label="${a.name}">
       <div class="prev ${a.type === "png" && a.w <= 512 ? "checker" : ""}">
@@ -164,7 +192,7 @@ function openLightbox(i) {
   $("lb-badge").textContent = a.type.toUpperCase();
   $("lb-badge").style.background = { png: "var(--green)", svg: "var(--gold)", ico: "var(--muted)" }[a.type] || "var(--muted)";
   $("lb-path").textContent = a.path;
-  $("lb-dims").textContent = a.w ? `${a.w} × ${a.h} px` : "vector";
+  $("lb-dims").textContent = a.w ? `${a.w} × ${a.h} px` : "矢量";
   $("lb-size").textContent = human(a.bytes);
   $("lb-counter").textContent = `${i + 1} / ${currentList.length}`;
   $("lb-download").href = encodePath(a.path);
