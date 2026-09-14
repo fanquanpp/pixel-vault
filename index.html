@@ -37,7 +37,7 @@
 <div class="scanlines" aria-hidden="true"></div>
 
 <header class="topbar">
-  <button class="navtoggle" id="navtoggle" aria-label="打开分类菜单"><span class="bars"><i></i><i></i><i></i></span>/button>
+  <button class="navtoggle" id="navtoggle" aria-label="打开分类菜单" aria-expanded="false" aria-controls="sidebar"><span class="bars"><i></i><i></i><i></i></span></button>
   <a class="brand" href="./">
     <img src="game/pixel-ui-pack/heart-full.png" alt="" class="brand-heart">
     <span class="brand-name">PIXEL<em>VAULT</em></span>
@@ -68,7 +68,7 @@
 </section>
 
 <div class="layout">
-  <aside class="sidebar" id="sidebar">
+  <aside class="sidebar" id="sidebar" tabindex="-1">
     <div class="searchbox">
       <input id="search" type="search" placeholder="搜索素材… / search" autocomplete="off">
     </div>

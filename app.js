@@ -13,6 +13,8 @@ const view = {
 let currentList = [];
 let currentIdx = -1;
 let searchTimer = 0;
+let lbPushed = false;
+let drawerPushed = false;
 
 /* ---------- helpers ---------- */
 const human = (b) => b < 1024 ? b + " B" : b < 1048576 ? Math.round(b / 1024) + " KB" : (b / 1048576).toFixed(2) + " MB";
@@ -21,6 +23,8 @@ const subLabel = (id) => id.split("/").slice(1).join("/");
 
 /* ---------- boot ---------- */
 async function boot() {
+  // a reload while an overlay was open leaves a stale history state behind
+  if (history.state && history.state.pv) history.replaceState(null, "");
   buildSkeleton(16);
   applyDensity();
   const res = await fetch("manifest.json");
@@ -169,26 +173,29 @@ function openLightbox(i) {
   $("lightbox").hidden = false;
   document.body.style.overflow = "hidden";
   $("lb-close").focus();
+  // back gesture / Esc share one history entry per open
+  if (!lbPushed) { history.pushState({ pv: "lightbox" }, ""); lbPushed = true; }
   // preload neighbors
   [i - 1, i + 1].forEach((j) => {
     const n = currentList[(j + currentList.length) % currentList.length];
     if (n) new Image().src = encodePath(n.path);
   });
 }
-function closeLightbox() {
+function closeLightbox(fromPop) {
   $("lightbox").hidden = true;
   document.body.style.overflow = "";
+  if (lbPushed && !fromPop) { lbPushed = false; history.back(); return; }
+  lbPushed = false;
 }
 function step(d) {
   if (currentIdx < 0 || !currentList.length) return;
   openLightbox((currentIdx + d + currentList.length) % currentList.length);
 }
 
-/* focus trap inside lightbox */
-function trapFocus(e) {
-  if ($("lightbox").hidden) return;
-  if (e.key !== "Tab") return;
-  const focusables = $("lightbox").querySelectorAll("button, a[href]");
+/* focus trap inside a container (lightbox / mobile drawer) */
+function trapFocusIn(container, e) {
+  const focusables = container.querySelectorAll("button, a[href], input, select");
+  if (!focusables.length) return;
   const first = focusables[0], last = focusables[focusables.length - 1];
   if (e.shiftKey && document.activeElement === first) { last.focus(); e.preventDefault(); }
   else if (!e.shiftKey && document.activeElement === last) { first.focus(); e.preventDefault(); }
@@ -239,14 +246,11 @@ function bind() {
   });
 
   // mobile drawer
-  $("navtoggle").addEventListener("click", () => {
-    $("sidebar").classList.add("open");
-    $("scrim").hidden = false;
-  });
-  $("scrim").addEventListener("click", closeDrawer);
+  $("navtoggle").addEventListener("click", openDrawer);
+  $("scrim").addEventListener("click", () => closeDrawer());
 
   // lightbox controls
-  document.querySelectorAll("[data-close]").forEach((n) => n.addEventListener("click", closeLightbox));
+  document.querySelectorAll("[data-close]").forEach((n) => n.addEventListener("click", () => closeLightbox()));
   $("lb-prev").addEventListener("click", () => step(-1));
   $("lb-next").addEventListener("click", () => step(1));
   $("lb-img").addEventListener("click", () => $("lb-img").classList.toggle("zoomed"));
@@ -260,11 +264,23 @@ function bind() {
     } catch { $("lb-copy").textContent = a.path; }
   });
   document.addEventListener("keydown", (e) => {
-    if ($("lightbox").hidden) return;
-    if (e.key === "Escape") closeLightbox();
-    else if (e.key === "ArrowLeft") step(-1);
-    else if (e.key === "ArrowRight") step(1);
-    else if (e.key === "Tab") trapFocus(e);
+    const lbOpen = !$("lightbox").hidden;
+    const drawerOpen = $("sidebar").classList.contains("open");
+    if (lbOpen) {
+      if (e.key === "Escape") closeLightbox();
+      else if (e.key === "ArrowLeft") step(-1);
+      else if (e.key === "ArrowRight") step(1);
+      else if (e.key === "Tab") trapFocusIn($("lightbox"), e);
+    } else if (drawerOpen) {
+      if (e.key === "Escape") closeDrawer();
+      else if (e.key === "Tab") trapFocusIn($("sidebar"), e);
+    }
+  });
+
+  // hardware / browser back closes the lightbox or drawer instead of leaving the page
+  window.addEventListener("popstate", () => {
+    if (!$("lightbox").hidden) closeLightbox(true);
+    else if ($("sidebar").classList.contains("open")) closeDrawer(true);
   });
 
   // touch swipe on stage
@@ -277,9 +293,20 @@ function bind() {
   }, { passive: true });
 }
 
-function closeDrawer() {
+function openDrawer() {
+  $("sidebar").classList.add("open");
+  $("scrim").hidden = false;
+  $("navtoggle").setAttribute("aria-expanded", "true");
+  if (!drawerPushed) { history.pushState({ pv: "drawer" }, ""); drawerPushed = true; }
+  $("sidebar").focus();
+}
+
+function closeDrawer(fromPop) {
   $("sidebar").classList.remove("open");
   $("scrim").hidden = true;
+  $("navtoggle").setAttribute("aria-expanded", "false");
+  if (drawerPushed && !fromPop) { drawerPushed = false; history.back(); return; }
+  drawerPushed = false;
 }
 
 boot();
