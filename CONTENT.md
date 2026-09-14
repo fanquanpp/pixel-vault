@@ -13,7 +13,6 @@
 | game/pixel-anim/ | 16×16（落叶 32×32），4-8 帧横向帧条 | .aseprite（多帧）+ _strip.png | 8 组 |
 | game/speed-rouge/ | 混合（16px 条带到 6400×1080 关卡层） | .aseprite + .png | 151 |
 | game/bianqv/ | 混合 | .aseprite + .png | 2 |
-| icons/file-icons/ | 32×32 | .aseprite（icon/glyph 两层）+ .png | 12 枚 |
 | icons/vector/ | 矢量 | .svg | 69 |
 | icons/speed-rouge/ | 混合 | .png/.aseprite | 5 |
 | branding/ | 社交卡 1200×630 / bianqv 图标 | .png/.svg | 3 |
@@ -25,6 +24,7 @@
 - 类目：计算机软件(29)、电子信息(3)、机械自动化(13)、土木建筑(6)、医学健康(9)、经济管理(12)、人文法学(7)、教育体育(5)、理学(10)、艺术设计(6)、公共服务(6，新)、legacy-black(4，旧版风格存档)
 - 命名：`<方向>.png`（512 导出）+ `<方向>.aseprite`（256 源，bg / icon / text 三层可编辑）
 - 配色：每方向一主色，五阶色带 + 金色徽记点缀；全系列经撞色排查
+- 明暗：纯色图标统一加同色系暗部（左上光源，右/下缘加深约 28%），已有多阶配色的图标保持原样
 
 ## game/ — 游戏素材
 
@@ -57,9 +57,6 @@
 该项目的 sprite sheet（icons.png）及 aseprite 源。
 
 ## icons/ — 图标
-
-### file-icons（32×32 开发者文件图标）
-参照代码编辑器文件图标的配色语言（橙=HTML、蓝=CSS/TS、黄=JS/JSON、红=Git）：git、jekyll、html、css、js、ts、json、md、svg、png、zip、folder。徽章类带倒角高光，字形独立 glyph 层。商标说明见 DISCLAIMER。
 
 ### vector（SVG 69 枚）
 speed-rouge 界面用扁平线性图标，按 arrows / audio / buttons / characters / icons / keys / objects / ui 八组组织，纯白单色，适合做遮罩或 currentColor 染色。

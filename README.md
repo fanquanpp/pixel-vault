@@ -4,12 +4,12 @@
 > **在线浏览 / Browse online:** https://fanquanpp.github.io/pixel-vault/
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-63c74d.svg)](LICENSE)
-![Assets](https://img.shields.io/badge/%E5%8F%AF%E8%A7%81%E7%B4%A0%E6%9D%90-390-fee761.svg)
-![Sources](https://img.shields.io/badge/Aseprite_%E6%BA%90%E6%96%87%E4%BB%B6-244-2ce8f5.svg)
+![Assets](https://img.shields.io/badge/%E5%8F%AF%E8%A7%81%E7%B4%A0%E6%9D%90-378-fee761.svg)
+![Sources](https://img.shields.io/badge/Aseprite_%E6%BA%90%E6%96%87%E4%BB%B6-232-2ce8f5.svg)
 
-像素专业头像、游戏 UI、地形贴图、矢量图标 —— 每一件像素作品都附带 **Aseprite 源文件（.aseprite）**，可自由编辑。全部素材以 **MIT 协议** 开源，可自由用于个人与商业项目。
+像素专业头像、游戏 UI、地形贴图、动画帧条、矢量图标 —— 每一件像素作品都附带 **Aseprite 源文件（.aseprite）**，可自由编辑。全部素材以 **MIT 协议** 开源，可自由用于个人与商业项目。
 
-Professional pixel-art avatars, game UI, tiles and vector icons — every pixel piece ships with its editable **Aseprite source file**. All assets are released under the **MIT License**.
+Professional pixel-art avatars, game UI, tiles, animated strips and vector icons — every pixel piece ships with its editable **Aseprite source file**. All assets are released under the **MIT License**.
 
 > 文档 / Docs：[内容说明 CONTENT.md](CONTENT.md) · [免责声明 DISCLAIMER.md](DISCLAIMER.md) · [LICENSE](LICENSE)
 
@@ -25,7 +25,6 @@ Professional pixel-art avatars, game UI, tiles and vector icons — every pixel 
 | `game/pixel-tiles/` | 16×16 地形贴图：草/土/石/沙/砖/水… Tiles | 8 块 |
 | `game/pixel-anim/` | 动画帧条：水流/火焰/风/落叶/枯萎/奔跑/烟雾/星光 Animated strips | 8 组 |
 | `game/speed-rouge/` | 平台跳跃游戏全套素材（机关/建筑/关卡/FX/角色）Full platformer set | 151 |
-| `icons/file-icons/` | 32×32 开发者文件图标（git/html/css/js/ts/json/md/svg/png/zip/folder/jekyll） | 12 枚 |
 | `icons/vector/` | 扁平矢量图标（SVG，8 组）Flat SVG icons | 69 |
 | `branding/` | Logo、社交卡片等品牌资产 | 3 |
 
@@ -60,18 +59,6 @@ Professional pixel-art avatars, game UI, tiles and vector icons — every pixel 
   <img src="game/pixel-ui-pack-hd/key.png" width="64" alt="">
   <img src="game/pixel-ui-pack-hd/potion.png" width="64" alt="">
   <img src="game/pixel-ui-pack-hd/star.png" width="64" alt="">
-</p>
-<p align="center">
-  <img src="icons/file-icons/git.png" width="48" alt="">
-  <img src="icons/file-icons/html.png" width="48" alt="">
-  <img src="icons/file-icons/css.png" width="48" alt="">
-  <img src="icons/file-icons/js.png" width="48" alt="">
-  <img src="icons/file-icons/ts.png" width="48" alt="">
-  <img src="icons/file-icons/json.png" width="48" alt="">
-  <img src="icons/file-icons/md.png" width="48" alt="">
-  <img src="icons/file-icons/svg.png" width="48" alt="">
-  <img src="icons/file-icons/png.png" width="48" alt="">
-  <img src="icons/file-icons/zip.png" width="48" alt="">
 </p>
 <p align="center">
   <img src="game/pixel-tiles/grass.png" width="48" alt="">

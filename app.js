@@ -39,7 +39,6 @@ const SUB_LABELS = {
   "game/pixel-ui-pack-hd": "高清 UI 包",
   "game/pixel-anim": "动画帧条",
   "game/speed-rouge": "平台跳跃素材",
-  "icons/file-icons": "文件图标",
   "icons/speed-rouge": "平台跳跃图标",
   "icons/vector": "矢量图标",
   "branding/bianqv": "bianqv 品牌",
