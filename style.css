@@ -5,6 +5,7 @@
   --px: 3px;
   --card-min: 158px;
   --card-h: 118px;
+  --topbar-h: 63px; /* JS keeps this in sync with the real topbar height */
 }
 html[data-theme="dark"] {
   --bg: #1a1c2c; --bg2: #20243a; --panel: #292d44; --panel2: #31365273;
@@ -115,10 +116,16 @@ html[data-theme="light"] body::after { background: none; }
 @keyframes bob { 50% { transform: translateY(-8px); } }
 
 /* ---------- layout ---------- */
-.layout { display: flex; min-height: 70vh; }
+/* footer stays inside .layout (full-width wrap row) so the sticky sidebar's
+   containing block ends at the page bottom and never tucks under the topbar */
+.layout { display: flex; flex-wrap: wrap; min-height: 70vh; }
 .sidebar {
   width: 252px; flex: 0 0 auto; border-right: var(--px) solid var(--line);
   padding: 18px 14px; background: var(--bg2);
+  position: sticky; top: var(--topbar-h); align-self: flex-start;
+  max-height: calc(100vh - var(--topbar-h));
+  max-height: calc(100dvh - var(--topbar-h));
+  overflow-y: auto; scrollbar-gutter: stable;
 }
 .searchbox input {
   width: 100%; padding: 10px 12px; background: var(--bg); color: var(--ink);
@@ -227,6 +234,7 @@ html[data-density="l"] { --card-min: 220px; --card-h: 170px; }
 
 /* ---------- footer ---------- */
 .footer {
+  flex: 0 0 100%;
   display: flex; align-items: center; justify-content: center; gap: 12px;
   padding: 22px; border-top: var(--px) solid var(--line);
   color: var(--muted); font-size: 12px; letter-spacing: 1px; background: var(--bg2);
@@ -298,7 +306,7 @@ html[data-density="l"] { --card-min: 220px; --card-h: 170px; }
   .sidebar {
     position: fixed; top: 0; left: 0; bottom: 0; z-index: 80; width: min(300px, 86vw);
     transform: translateX(-102%); transition: transform .18s steps(4);
-    overflow-y: auto; padding-top: 20px;
+    overflow-y: auto; padding-top: 20px; max-height: none; align-self: auto;
   }
   .sidebar.open { transform: none; box-shadow: 12px 0 0 #00000040; }
   .scrim {

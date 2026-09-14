@@ -47,7 +47,18 @@ const SUB_LABELS = {
 const subLabel = (id) => SUB_LABELS[id] || id.split("/").slice(1).join("/");
 
 /* ---------- boot ---------- */
+/* sticky sidebar must clear the sticky topbar, so track its real rendered height */
+function watchTopbar() {
+  const bar = document.querySelector(".topbar");
+  if (!bar) return;
+  const set = () => document.documentElement.style.setProperty("--topbar-h", bar.offsetHeight + "px");
+  set();
+  if (window.ResizeObserver) new ResizeObserver(set).observe(bar);
+  else window.addEventListener("resize", set);
+}
+
 async function boot() {
+  watchTopbar();
   // a reload while an overlay was open leaves a stale history state behind
   if (history.state && history.state.pv) history.replaceState(null, "");
   buildSkeleton(16);
