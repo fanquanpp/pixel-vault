@@ -1,6 +1,6 @@
-# PIXEL VAULT · 像素素材库
+# PIXEL VAULT · 共享素材库
 
-> 通用全量像素艺术素材库 · A general-purpose pixel-art asset vault
+> 共享像素素材库 · 全部 MIT 开源 · A shared, MIT-licensed pixel-art asset vault
 > **在线浏览 / Browse online:** https://fanquanpp.github.io/pixel-vault/
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-63c74d.svg)](LICENSE)

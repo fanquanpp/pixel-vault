@@ -1,6 +1,6 @@
 # CONTENT · 内容说明
 
-> Pixel Vault 全部内容的规格、来源与使用方式。统计基于 manifest.json（390 件可见素材 / 244 个 Aseprite 源）。
+> Pixel Vault 全部内容的规格、来源与使用方式。统计基于 manifest.json（378 件可见素材 / 232 个 Aseprite 源）。
 
 ## 总览 / Overview
 
@@ -12,7 +12,7 @@
 | game/pixel-tiles/ | 16×16 | .aseprite + .png | 8 块 |
 | game/pixel-anim/ | 16×16（落叶 32×32），4-8 帧横向帧条 | .aseprite（多帧）+ _strip.png | 8 组 |
 | game/speed-rouge/ | 混合（16px 条带到 6400×1080 关卡层） | .aseprite + .png | 151 |
-| game/bianqv/ | 混合 | .aseprite + .png | 2 |
+| game/bianqv/ | 混合 | .aseprite + .png | 1 |
 | icons/vector/ | 矢量 | .svg | 69 |
 | icons/speed-rouge/ | 混合 | .png/.aseprite | 5 |
 | branding/ | 社交卡 1200×630 / bianqv 图标 | .png/.svg | 3 |

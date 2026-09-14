@@ -10,15 +10,15 @@ All assets are provided "AS IS" without warranty of any kind. See [LICENSE](LICE
 
 ## 2. 商标与名称 / Trademarks and Names
 
-文件图标包（`icons/file-icons/`）中出现的 JavaScript、TypeScript、HTML、CSS、JSON、Markdown、Git、Jekyll、SVG、PNG 等名称与标识，仅用于客观描述对应文件类型的用途。
+素材的名称与主题（如头像所对应的专业、行业名称，游戏素材的道具与场景名）仅用于客观描述其适用方向与用途，本仓库不持有也不主张这些名称的商标权利。
 
-- 这些名称与标识是其各自所有者的商标或注册商标。
-- 本仓库中的图标均为原创像素艺术演绎，**不是**任何官方 Logo 的副本，也无意冒充。
-- 本仓库与上述品牌及其所有者**无任何隶属、合作或背书关系**。
+- 这些名称与标识可能是其各自所有者的商标或注册商标。
+- 本仓库中的素材均为原创像素艺术演绎，**不是**任何官方 Logo 的副本，也无意冒充。
+- 本仓库与相关品牌及其所有者**无任何隶属、合作或背书关系**。
 
 此惯例遵循图标类开源项目（如 Simple Icons）的通行做法：MIT 授予的是著作权许可，不授予任何商标权利。
 
-The names above are used only to identify file-type purposes. The icons are original pixel-art renditions, not copies of any official logos. This project is not affiliated with, associated with, or endorsed by any of the mentioned brands. Trademarks belong to their respective owners; MIT grants no trademark rights.
+Asset names and themes are used only to describe their intended direction and use. All assets are original pixel-art renditions, not copies of any official logos. This project is not affiliated with, associated with, or endorsed by any of the mentioned brands. Trademarks belong to their respective owners; MIT grants no trademark rights.
 
 ## 3. 第三方组件 / Third-party Components
 
