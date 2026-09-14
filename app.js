@@ -56,6 +56,7 @@ async function boot() {
   MANIFEST = await res.json();
   removeSkeleton();
   countUpStats();
+  renderHeroLine();
   buildTree();
   bind();
   render();
@@ -92,6 +93,18 @@ function countUpStats() {
       if (p < 1) requestAnimationFrame(tick);
     })(t0);
   });
+}
+
+/* hero 介绍行：数字全部取自 manifest，避免文案与库存脱节 */
+function renderHeroLine() {
+  const c = MANIFEST.counts || {};
+  const parts = [];
+  if (c.avatars) parts.push(`${c.avatars} 专业方向像素头像`);
+  if (c.game) parts.push("游戏 UI 包 · 地贴 · 动画帧条");
+  if (c.icons) parts.push("矢量图标");
+  parts.push(`${MANIFEST.sourceCount} Aseprite 源文件`, "全部 MIT");
+  const el = $("hero-line");
+  if (el) el.textContent = parts.join(" · ");
 }
 
 /* ---------- sidebar tree ---------- */
