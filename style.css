@@ -139,10 +139,10 @@ html[data-theme="light"] .fbtn.active { color: #fff; }
   flex: 1; font: inherit; font-size: 12px; padding: 6px 8px;
   background: var(--panel); color: var(--ink); border: var(--px) solid var(--line);
 }
-.density { display: flex; gap: 4px; }
+.density { display: flex; flex: 1; gap: 6px; }
 .density button {
-  flex: 1; padding: 6px 0; cursor: pointer; color: var(--muted); font-size: 8px;
-  background: var(--panel); border: var(--px) solid var(--line); letter-spacing: -1px;
+  flex: 1; padding: 10px 0; cursor: pointer; color: var(--muted); font-size: 12px;
+  background: var(--panel); border: var(--px) solid var(--line); letter-spacing: 0;
 }
 .density button.active { color: #10240b; background: var(--green); border-color: var(--green); }
 html[data-theme="light"] .density button.active { color: #fff; }
