@@ -1,6 +1,6 @@
 # CONTENT · 内容说明
 
-> Pixel Vault 全部内容的规格、来源与使用方式。统计基于 manifest.json（402 件可见素材 / 244 个 Aseprite 源）。
+> Pixel Vault 全部内容的规格、来源与使用方式。统计基于 manifest.json（382 件可见素材 / 236 个 Aseprite 源）。
 
 ## 总览 / Overview
 
@@ -10,13 +10,12 @@
 | game/pixel-ui-pack/ | 16×16（按钮 48×16、面板 48×48） | .aseprite + .png | 17 件 |
 | game/pixel-ui-pack-hd/ | 32×32 | .aseprite（icon/glyph 层）+ .png | 6 件 |
 | game/pixel-tiles/ | 16×16 | .aseprite + .png | 8 块 |
-| game/speed-rouge/ | 混合（16px 条带到 6400×1080 关卡层） | .aseprite + .png | 170+ |
+| game/speed-rouge/ | 混合（16px 条带到 6400×1080 关卡层） | .aseprite + .png | 151 |
 | game/bianqv/ | 混合 | .aseprite + .png | 2 |
 | icons/file-icons/ | 32×32 | .aseprite（icon/glyph 两层）+ .png | 12 枚 |
-| icons/vector/ | 矢量 | .svg | 72 |
-| icons/fandex/ | 多尺寸母版 | .png/.svg/.ico | 9 |
-| icons/speed-rouge/ · icons/j-run/ | 混合 | .png/.aseprite | 8 |
-| branding/ | og 1200×630 / 社交卡 1200×630 | .png/.svg | 5 |
+| icons/vector/ | 矢量 | .svg | 69 |
+| icons/speed-rouge/ | 混合 | .png/.aseprite | 5 |
+| branding/ | 社交卡 1200×630 / bianqv 图标 | .png/.svg | 3 |
 
 ## avatars/ — 像素专业方向头像
 
@@ -38,11 +37,10 @@
 草/土/石/沙/木板/砖/水/雪。程序化撒点保证铺贴观感，砖与石块带手工接缝。
 
 ### speed-rouge（完整平台跳跃项目素材）
-- `backgrounds/` 视差背景与天空渐变
 - `buildings/` `geometry/` 建筑与几何地景
 - `mechanics/` 机关（检查点、传送门、琴键地块、限时桥、变速门、弹射垫等），`*_strip.png` 为横向帧条
 - `levels/` 关卡导出（`_ent` 实体层 / `_map` 地形层 / 基础层），含 rogue 模式五类机关 × 三难度 × 双节奏变体
-- `characters/`（cat_sheet 猫奔跑条）、`collectibles/`、`obstacles/`、`fx/`（死亡碎屑/落地尘/换位爆闪）、`ui/`（card/poster/ui_sheet）
+- `characters/`（cat_sheet 猫奔跑条）、`collectibles/`、`fx/`（死亡碎屑/落地尘/换位爆闪）、`ui/`（card/poster 边框）
 
 ### bianqv
 该项目的 sprite sheet（icons.png）及 aseprite 源。
@@ -52,15 +50,15 @@
 ### file-icons（32×32 开发者文件图标）
 参照代码编辑器文件图标的配色语言（橙=HTML、蓝=CSS/TS、黄=JS/JSON、红=Git）：git、jekyll、html、css、js、ts、json、md、svg、png、zip、folder。徽章类带倒角高光，字形独立 glyph 层。商标说明见 DISCLAIMER。
 
-### vector（SVG 72 枚）
+### vector（SVG 69 枚）
 speed-rouge 界面用扁平线性图标，按 arrows / audio / buttons / characters / icons / keys / objects / ui 八组组织，纯白单色，适合做遮罩或 currentColor 染色。
 
-### fandex / speed-rouge / j-run
-FANDEX 应用图标母版集（PWA 192/512、maskable、apple-touch、favicon.svg、app-icon.svg、1024 母版、ico）；speed-rouge 应用图标与自适应图标分层；j-run 单枚界面图标。
+### speed-rouge
+speed-rouge 应用图标与自适应图标分层。
 
 ## branding/ — 品牌资产
 
-og-image.png/svg（1200×630 社交卡源）、site/social-card.png（站点分享卡）、bianqv 的 icon64 与 logo。
+site/social-card.png（站点分享卡）、bianqv 的 icon64 与 logo。
 
 ## 使用约定 / Conventions
 

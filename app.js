@@ -38,13 +38,10 @@ const SUB_LABELS = {
   "game/pixel-ui-pack": "像素 UI 包",
   "game/pixel-ui-pack-hd": "高清 UI 包",
   "game/speed-rouge": "平台跳跃素材",
-  "icons/fandex": "FANDEX 应用图标",
   "icons/file-icons": "文件图标",
-  "icons/j-run": "J-Run 图标",
   "icons/speed-rouge": "平台跳跃图标",
   "icons/vector": "矢量图标",
   "branding/bianqv": "bianqv 品牌",
-  "branding/fandex": "fandex 品牌",
   "branding/site": "站点品牌",
 };
 const subLabel = (id) => SUB_LABELS[id] || id.split("/").slice(1).join("/");
