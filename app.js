@@ -5,10 +5,18 @@
 "use strict";
 
 const $ = (id) => document.getElementById(id);
+/* localStorage throws under file:// hard mode, private mode or disabled
+   storage; the site must still boot when it does */
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch { /* ignore */ } },
+};
+/* escape interpolated strings that reach innerHTML */
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 let MANIFEST = null;
 const view = {
   sub: null, filter: "all", q: "", sort: "name",
-  density: localStorage.getItem("pv-density") || "m",
+  density: store.get("pv-density") || "m",
 };
 let currentList = [];
 let currentIdx = -1;
@@ -64,8 +72,17 @@ async function boot() {
   if (history.state && history.state.pv) history.replaceState(null, "");
   buildSkeleton(16);
   applyDensity();
-  const res = await fetch("manifest.json");
-  MANIFEST = await res.json();
+  try {
+    const res = await fetch("manifest.json");
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    MANIFEST = await res.json();
+  } catch (err) {
+    removeSkeleton();
+    // Chrome blocks fetch() under file://, which is how the README tells
+    // people to browse locally; point at a local server instead of hanging
+    $("cat-head").innerHTML = `<h2>清单加载失败</h2><p>${esc(err)} · 直接从磁盘打开时请在仓库目录运行 python -m http.server 并访问 localhost:8000</p>`;
+    return;
+  }
   removeSkeleton();
   countUpStats();
   renderHeroLine();
@@ -112,8 +129,8 @@ function renderHeroLine() {
   const c = MANIFEST.counts || {};
   const parts = [];
   if (c.avatars) parts.push(`${c.avatars} 专业方向像素头像`);
-  if (c.game) parts.push("游戏 UI 包 · 地贴 · 动画帧条");
-  if (c.icons) parts.push("矢量图标");
+  if (c.game) parts.push(`${c.game} 游戏像素素材`);
+  if (c.icons) parts.push(`${c.icons} 矢量图标`);
   parts.push(`${MANIFEST.sourceCount} Aseprite 源文件`, "全部 MIT");
   const el = $("hero-line");
   if (el) el.textContent = parts.join(" · ");
@@ -168,7 +185,7 @@ function render() {
     const cat = view.sub.split("/")[0];
     head.innerHTML = `<h2>${subLabel(view.sub)}</h2><p>${MANIFEST.catLabels[cat] || cat} · ${currentList.length} 项</p>`;
   } else if (view.q) {
-    head.innerHTML = `<h2>搜索 “${view.q}”</h2><p>${currentList.length} 项匹配</p>`;
+    head.innerHTML = `<h2>搜索 “${esc(view.q)}”</h2><p>${currentList.length} 项匹配</p>`;
   } else {
     head.innerHTML = `<h2>全部素材</h2><p>${currentList.length} 项 · MIT 协议 · 可自由使用</p>`;
   }
@@ -176,13 +193,13 @@ function render() {
   grid.innerHTML = currentList.map((a, i) => {
     const dims = a.w ? `${a.w}×${a.h}` : "矢量";
     const svgAttr = a.type === "svg" ? ' data-svg="1"' : "";
-    return `<div class="card" data-i="${i}" style="animation-delay:${Math.min(i * 10, 200)}ms" tabindex="0" role="button" aria-label="${a.name}">
+    return `<div class="card" data-i="${i}" style="animation-delay:${Math.min(i * 10, 200)}ms" tabindex="0" role="button" aria-label="${esc(a.name)}">
       <div class="prev ${a.type === "png" && a.w <= 512 ? "checker" : ""}">
-        <img loading="lazy" decoding="async" src="${encodePath(a.path)}" alt="${a.name}"${svgAttr}>
+        <img loading="lazy" decoding="async" src="${encodePath(a.path)}" alt="${esc(a.name)}"${svgAttr}>
         <a class="quick-dl" href="${encodePath(a.path)}" download title="快速下载">↓</a>
       </div>
       <div class="bar">
-        <span class="nm">${a.name}</span>
+        <span class="nm">${esc(a.name)}</span>
         <span class="dm">${dims}</span>
         ${a.source ? '<span class="src-badge" title="含 Aseprite 源文件"></span>' : ""}
       </div>
@@ -212,7 +229,7 @@ function openLightbox(i) {
   if (a.type === "svg") img.setAttribute("data-svg", "1"); else img.removeAttribute("data-svg");
   $("lb-name").textContent = a.name;
   $("lb-badge").textContent = a.type.toUpperCase();
-  $("lb-badge").style.background = { png: "var(--green)", svg: "var(--gold)", ico: "var(--muted)" }[a.type] || "var(--muted)";
+  $("lb-badge").style.background = { png: "var(--green)", svg: "var(--gold)" }[a.type] || "var(--muted)";
   $("lb-path").textContent = a.path;
   $("lb-dims").textContent = a.w ? `${a.w} × ${a.h} px` : "矢量";
   $("lb-size").textContent = human(a.bytes);
@@ -284,7 +301,7 @@ function bind() {
     const b = e.target.closest("button");
     if (!b) return;
     view.density = b.dataset.d;
-    localStorage.setItem("pv-density", view.density);
+    store.set("pv-density", view.density);
     applyDensity();
   });
 
@@ -292,7 +309,7 @@ function bind() {
   $("theme-toggle").addEventListener("click", () => {
     const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
     document.documentElement.dataset.theme = next;
-    try { localStorage.setItem("pv-theme", next); } catch (e) {}
+    store.set("pv-theme", next);
   });
 
   // mobile drawer

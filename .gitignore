@@ -36,3 +36,6 @@ $RECYCLE.BIN/
 # --- image editor sidecars (sources live here as .aseprite only) ---
 *.psd~
 *.ora~
+
+# --- local QA artifacts (GUI test screenshots, not library content) ---
+gui-test-screenshots/
