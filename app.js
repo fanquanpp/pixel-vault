@@ -38,6 +38,7 @@ const SUB_LABELS = {
   "game/pixel-ui-pack": "像素 UI 包",
   "game/pixel-ui-pack-hd": "高清 UI 包",
   "game/pixel-anim": "动画帧条",
+  "game/pixel-plants": "像素植物",
   "game/speed-rouge": "平台跳跃素材",
   "icons/speed-rouge": "平台跳跃图标",
   "icons/vector": "矢量图标",

@@ -1,6 +1,6 @@
 # CONTENT · 内容说明
 
-> Pixel Vault 全部内容的规格、来源与使用方式。统计基于 manifest.json（378 件可见素材 / 232 个 Aseprite 源）。
+> Pixel Vault 全部内容的规格、来源与使用方式。统计基于 manifest.json（559 件可见素材 / 413 个 Aseprite 源）。
 
 ## 总览 / Overview
 
@@ -11,6 +11,7 @@
 | game/pixel-ui-pack-hd/ | 32×32 | .aseprite（icon/glyph 层）+ .png | 6 件 |
 | game/pixel-tiles/ | 16×16 | .aseprite + .png | 8 块 |
 | game/pixel-anim/ | 16×16（落叶 32×32），4-8 帧横向帧条 | .aseprite（多帧）+ _strip.png | 8 组 |
+| game/pixel-plants/ | 16×16（树木 32×32），169 瓦片 + 12 组 4 帧帧条 | .aseprite（7 层）+ .png / _strip.png | 181 |
 | game/speed-rouge/ | 混合（16px 条带到 6400×1080 关卡层） | .aseprite + .png | 151 |
 | game/bianqv/ | 混合 | .aseprite + .png | 1 |
 | icons/vector/ | 矢量 | .svg | 69 |
@@ -46,6 +47,15 @@
 - `plant-wither`：6 帧单向枯萎序列：挺立-垂头-褪色转褐-倒伏落瓣
 - `run-cycle`：6 帧奔跑循环，接触/下压/腾空三关键姿态 × 双摆臂相位，身体随步幅起伏
 - `smoke-puff`：5 帧烟雾上升消散；`sparkle`：4 帧星形闪烁循环
+
+### pixel-plants（植物像素素材）
+169 枚植物瓦片 + 12 组摇曳动画帧条，按「古典仙气 / 浪漫花语 / 本草清雅 / 树木佛意 / 野趣多肉」五类组织；文件名用拼音 kebab-case（如 `juan-er`、`man-zhu-sha-hua`），中文名与逐条来源见 `game/pixel-plants/_meta/slug-map.md`。
+- 画布：小花草本 16×16，树木 32×32；导出为透明背景 PNG，硬边无抗锯齿
+- 图层：每枚源文件统一 7 层，自下而上 `shadow / stem / leaf / bloom / bloom-shade / core / glint`，可继续编辑
+- 调色板：主色/辅色/点色按清单逐条给定，叶茎复用通用自然色板；单枚瓦片不透明颜色数控制在 4-7
+- 变体：同形换色（只替换主/辅/点色，叶茎不变），共 39 枚变体瓦片
+- 动画：`<slug>-sway_strip.png` 为 4 帧横向帧条（帧宽等于画布宽），150ms/帧、pingpong 循环，源文件内打 `sway` 标签
+- 清单与文档：`game/pixel-plants/assets.manifest.json`（逐项名称/类别/尺寸/帧数/调色板/路径/状态/来源条目）；`game/pixel-plants/_meta/` 含预览接触表、`.gpl` 调色板（64 色主板 + 5 个子板）、命名映射与再生成脚本
 
 ### speed-rouge（完整平台跳跃项目素材）
 - `buildings/` `geometry/` 建筑与几何地景

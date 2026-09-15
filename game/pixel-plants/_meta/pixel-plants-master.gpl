@@ -1,0 +1,68 @@
+GIMP Palette
+Name: pixel-plants master (64)
+Columns: 8
+#
+ 35  64  42	#23402A                leaf-dark
+ 63 107  58	#3F6B3A                leaf-mid
+111 163  74	#6FA34A                leaf-light
+168 207 106	#A8CF6A                leaf-hi
+ 74  53  40	#4A3528                stem-dark
+122  90  56	#7A5A38                stem-mid
+184 137  82	#B88952                stem-light
+217 184 122	#D9B87A                stem-hi
+ 46  34  28	#2E221C                soil-dark
+ 90  63  44	#5A3F2C                soil-mid
+140 100  64	#8C6440                soil-light
+184 137  82	#B88952                soil-hi
+ 62  65  74	#3E414A                stone-dark
+110 115 128	#6E7380                stone-mid
+174 179 189	#AEB3BD                stone-light
+217 220 227	#D9DCE3                stone-hi
+ 30  63  92	#1E3F5C                water-dark
+ 46 111 150	#2E6F96                water-mid
+111 182 209	#6FB6D1                water-light
+184 227 242	#B8E3F2                water-hi
+ 26  26  32	#1A1A20                neutral-dark/shadow
+138 143 152	#8A8F98                neutral-mid
+232 217 184	#E8D9B8                neutral-light
+246 242 230	#F6F2E6                neutral-hi
+199  91  26	#C75B1A                gold-dark
+242 193  78	#F2C14E                gold-mid
+255 216  77	#FFD84D                gold-light
+255 243 176	#FFF3B0                gold-hi
+240 139 180	#F08BB4                fu-sang-fen:main
+155 126 222	#9B7EDE                xun-yi-cao:main
+153 150 143	#99968F                wei-bai:accent
+106  90 205	#6A5ACD                yuan-wei:main
+149  86 112	#955670                fu-sang-fen:accent
+215  38  61	#D7263D                man-zhu-sha-hua:main
+230  57  70	#E63946                fu-sang:main
+150 120  48	#967830                xuan-cao-huang:accent
+ 74 144 226	#4A90E2                liu-li-ju:main
+184 217 232	#B8D9E8                shui-jing-cao:accent
+242 140  40	#F28C28                xuan-cao:main
+164  22  26	#A4161A                fu-sang:accent
+ 91 141 239	#5B8DEF                wu-wang-cao:main
+ 63  63 140	#3F3F8C                yuan-wei:accent
+217 210 192	#D9D2C0                xi-yan:accent
+142 124 195	#8E7CC3                hui:main
+ 46  95 163	#2E5FA3                liu-li-ju:accent
+140  28  42	#8C1C2A                man-zhu-sha-hua:accent
+ 90  46  26	#5A2E1A                su-he-xiang:accent
+196 154  90	#C49A5A                dang-gui:main
+232 240 216	#E8F0D8                juan-er:main
+201 217 122	#C9D97A                fu-yi:dot
+126  90 168	#7E5AA8                wei:accent
+ 93  78 140	#5D4E8C                hui:accent
+242 169   0	#F2A900                yue-jian-cao:accent
+255 138   0	#FF8A00                yue-jian-cao:dot
+184 217 122	#B8D97A                xue-jian:dot
+143  35  43	#8F232B                san-se-jin-hong:accent
+140  74  46	#8C4A2E                su-he-xiang:main
+183 201 160	#B7C9A0                juan-er:accent
+181 126 220	#B57EDC                wei:main
+125 135  76	#7D874C                hui-huang-lv:accent
+ 79 179 168	#4FB3A8                jian-mu:main
+ 58  95 205	#3A5FCD                wu-wang-cao:accent
+158 151 109	#9E976D                xi-yan-huang:accent
+ 46  89 140	#2E598C                lu-bing-hua-lan:accent
