@@ -95,6 +95,7 @@ pixel-vault/
 │   ├── pixel-ui-pack/  16×16 UI 包 
 │   ├── pixel-tiles/    16×16 地贴 
 │   ├── pixel-anim/     动画帧条（水流/火焰/风/落叶/枯萎/奔跑）
+│   ├── pixel-plants/   植物瓦片与摇曳帧条（花草 16×16 / 树木 32×32）
 │   ├── speed-rouge/    平台游戏全套素材
 │   └── bianqv/
 ├── icons/              vector(SVG) · speed-rouge

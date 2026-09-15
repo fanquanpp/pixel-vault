@@ -35,6 +35,67 @@ const ASSET_EXTS = new Set([".png", ".svg"]);
 const CAT_ORDER = ["avatars", "branding", "game", "icons"];
 const CAT_LABELS = { avatars: "像素专业头像", game: "游戏素材", icons: "图标", branding: "品牌" };
 
+// The manifest was hand-maintained before this tool existed. Its layout is
+// append-history, not a global sort: the body keeps the original families in
+// insertion order (avatars, branding, game core, icons), and every family
+// added later was appended after the whole body (pixel-anim, in a hand-picked
+// path order). Pin that layout (derived from the pre-plants backup) so
+// regenerated output matches the original order exactly; families added after
+// that (pixel-plants) slot in at the end of their category, keeping each
+// category contiguous.
+const LEGACY_BODY_SUBS = {
+  game: ["game/bianqv", "game/pixel-tiles", "game/pixel-ui-pack", "game/pixel-ui-pack-hd", "game/speed-rouge"],
+};
+const LEGACY_TAIL_SUBS = ["game/pixel-anim"];
+const LEGACY_PATH_ORDER = {
+  "game/pixel-anim": [
+    "game/pixel-anim/water-flow_strip.png",
+    "game/pixel-anim/sparkle_strip.png",
+    "game/pixel-anim/smoke-puff_strip.png",
+    "game/pixel-anim/flame_strip.png",
+    "game/pixel-anim/wind-gust_strip.png",
+    "game/pixel-anim/leaves-fall_strip.png",
+    "game/pixel-anim/plant-wither_strip.png",
+    "game/pixel-anim/run-cycle_strip.png",
+  ],
+};
+
+const catRank = (c) => (CAT_ORDER.indexOf(c) < 0 ? CAT_ORDER.length : CAT_ORDER.indexOf(c));
+const byCodeUnit = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+const inTail = (sub) => LEGACY_TAIL_SUBS.includes(sub);
+
+function subCompare(a, b) {
+  const legacy = LEGACY_BODY_SUBS[a.split("/")[0]] || [];
+  const ia = legacy.indexOf(a);
+  const ib = legacy.indexOf(b);
+  if (ia >= 0 && ib >= 0) return ia - ib;
+  if (ia >= 0) return -1;
+  if (ib >= 0) return 1;
+  return byCodeUnit(a, b);
+}
+
+function assetCompare(a, b) {
+  return (
+    (inTail(a.sub) ? 1 : 0) - (inTail(b.sub) ? 1 : 0) ||
+    catRank(a.cat) - catRank(b.cat) ||
+    byCodeUnit(a.cat, b.cat) ||
+    subCompare(a.sub, b.sub) ||
+    pathCompare(a.path, b.path)
+  );
+}
+
+function pathCompare(a, b) {
+  const pin = LEGACY_PATH_ORDER[a.split("/").slice(0, 2).join("/")];
+  if (pin) {
+    const ia = pin.indexOf(a);
+    const ib = pin.indexOf(b);
+    if (ia >= 0 && ib >= 0) return ia - ib;
+    if (ia >= 0) return -1;
+    if (ib >= 0) return 1;
+  }
+  return byCodeUnit(a, b);
+}
+
 const args = process.argv.slice(2);
 const flag = (n) => args.includes(n);
 const opt = (n, d = null) => {
@@ -143,26 +204,28 @@ function build() {
     assets.push(rec);
   }
 
-  const catRank = (c) => (CAT_ORDER.indexOf(c) < 0 ? CAT_ORDER.length : CAT_ORDER.indexOf(c));
-  assets.sort(
-    (a, b) =>
-      catRank(a.cat) - catRank(b.cat) ||
-      a.cat.localeCompare(b.cat) ||
-      a.sub.localeCompare(b.sub) ||
-      a.path.localeCompare(b.path)
-  );
+  assets.sort(assetCompare);
 
-  const cats = [...new Set(assets.map((a) => a.cat))].sort((x, y) => catRank(x) - catRank(y) || x.localeCompare(y));
+  const cats = [...new Set(assets.map((a) => a.cat))].sort((x, y) => catRank(x) - catRank(y) || byCodeUnit(x, y));
   const counts = {};
   const subs = {};
   for (const c of cats) {
     counts[c] = assets.filter((a) => a.cat === c).length;
-    const ids = [...new Set(assets.filter((a) => a.cat === c).map((a) => a.sub))].sort();
+    // assets are already in final order, so first-seen = the sub order below
+    const ids = [...new Set(assets.filter((a) => a.cat === c).map((a) => a.sub))];
     subs[c] = ids.map((id) => ({ id, count: assets.filter((a) => a.sub === id).length }));
   }
 
+  // Key order mirrors the hand-maintained original (not the assets order)
+  // so the regenerated file stays byte-identical apart from "generated".
+  const CATLABELS_KEY_ORDER = ["avatars", "game", "icons", "branding"];
   const catLabels = {};
-  for (const c of cats) catLabels[c] = CAT_LABELS[c] || c;
+  for (const c of CATLABELS_KEY_ORDER.filter((c) => cats.includes(c))) catLabels[c] = CAT_LABELS[c] || c;
+  for (const c of cats.filter((c) => !CATLABELS_KEY_ORDER.includes(c))) catLabels[c] = CAT_LABELS[c] || c;
+
+  const subsOrdered = {};
+  for (const c of CATLABELS_KEY_ORDER.filter((c) => cats.includes(c))) subsOrdered[c] = subs[c];
+  for (const c of cats.filter((c) => !CATLABELS_KEY_ORDER.includes(c))) subsOrdered[c] = subs[c];
 
   const distinctSources = new Set(assets.map((a) => a.source).filter(Boolean));
   const onDisk = countAseprite();
@@ -176,7 +239,7 @@ function build() {
     totalBytes: assets.reduce((s, a) => s + a.bytes, 0),
     counts,
     sourceCount: onDisk,
-    subs,
+    subs: subsOrdered,
     assets,
     _debug: { distinctSources: distinctSources.size, asepriteOnDisk: onDisk },
   };
