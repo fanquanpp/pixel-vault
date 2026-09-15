@@ -189,6 +189,10 @@ html[data-density="l"] { --card-min: 220px; --card-h: 170px; }
   cursor: pointer; overflow: hidden; box-shadow: 0 4px 0 var(--shadow);
   transition: transform .08s steps(2), border-color .12s;
   animation: pop .25s steps(3) backwards;
+  /* skip layout/paint of off-screen cards (559 items render at once);
+     intrinsic size = preview height + bar/border, measured 39px in all densities */
+  content-visibility: auto;
+  contain-intrinsic-size: auto calc(var(--card-h) + 39px);
 }
 .card:hover { transform: translateY(-3px); border-color: var(--green); }
 .card:active { transform: translateY(0); }
@@ -223,6 +227,11 @@ html[data-density="l"] { --card-min: 220px; --card-h: 170px; }
 .card:hover .quick-dl { display: block; }
 .quick-dl:hover { border-color: var(--green); color: var(--green); }
 .empty { color: var(--muted); padding: 40px 0; text-align: center; }
+/* visually hidden live region: announces result counts without re-reading the grid */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
 
 /* skeleton shimmer */
 @keyframes shimmer { 0% { background-position: -300px 0; } 100% { background-position: 300px 0; } }

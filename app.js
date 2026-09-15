@@ -206,6 +206,13 @@ function render() {
     </div>`;
   }).join("");
   $("empty").hidden = currentList.length > 0;
+  // concise screen-reader summary instead of re-announcing the whole grid
+  const status = $("live-status");
+  if (status) status.textContent = view.sub
+    ? `${subLabel(view.sub)} 共 ${currentList.length} 项`
+    : view.q
+      ? `搜索 ${view.q}，${currentList.length} 项匹配`
+      : `全部素材 ${currentList.length} 项`;
 }
 
 /* ---------- theme / density ---------- */
@@ -306,9 +313,15 @@ function bind() {
   });
 
   // theme
+  const applyThemeColor = (t) => {
+    const meta = $("meta-theme");
+    if (meta) meta.content = t === "light" ? "#eceef4" : "#1a1c2c";
+  };
+  applyThemeColor(document.documentElement.dataset.theme);
   $("theme-toggle").addEventListener("click", () => {
     const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
     document.documentElement.dataset.theme = next;
+    applyThemeColor(next);
     store.set("pv-theme", next);
   });
 

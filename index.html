@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Pixel Vault · 共享素材库</title>
 <meta name="description" content="Pixel Vault — 开源像素艺术素材库：专业头像、游戏 UI、地贴、矢量图标。MIT 协议，自由取用。">
-<meta name="theme-color" content="#1a1c2c">
+<meta name="theme-color" content="#1a1c2c" id="meta-theme">
 <link rel="canonical" href="https://fanquanpp.github.io/pixel-vault/">
 <link rel="icon" href="game/pixel-ui-pack/gem.png" type="image/png">
 <meta property="og:type" content="website">
@@ -24,12 +24,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=2">
 <script>
   (function(){ try {
     var t = localStorage.getItem("pv-theme");
     if (!t) t = matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
     document.documentElement.dataset.theme = t;
+    var m = document.getElementById("meta-theme");
+    if (m) m.content = t === "light" ? "#eceef4" : "#1a1c2c";
   } catch(e){} })();
 </script>
 </head>
@@ -101,8 +103,9 @@
   <div class="scrim" id="scrim" hidden></div>
 
   <main class="main">
+    <p class="sr-only" id="live-status" role="status"></p>
     <div class="cat-head" id="cat-head"></div>
-    <div class="grid" id="grid" aria-live="polite"></div>
+    <div class="grid" id="grid"></div>
     <div class="grid skeleton" id="skeleton" aria-hidden="true"></div>
     <p class="empty" id="empty" hidden>没有匹配的素材</p>
   </main>
@@ -145,6 +148,8 @@
   </figure>
 </div>
 
-<script src="app.js"></script>
+<!-- bump ?v= on style.css / app.js when either changes: Pages caches assets
+     for 10 minutes, so a bare URL can pair stale code with new markup -->
+<script src="app.js?v=2"></script>
 </body>
 </html>
