@@ -24,7 +24,7 @@ Professional pixel-art avatars, game UI, tiles, animated strips and vector icons
 | `game/pixel-ui-pack-hd/` | 32×32 精雕 HD 版：心/金币/宝石/钥匙/药水/星（5 阶色带+抖动+镜面高光） | 6 件 |
 | `game/pixel-tiles/` | 16×16 地形贴图：草/土/石/沙/砖/水… Tiles | 8 块 |
 | `game/pixel-anim/` | 动画帧条：水流/火焰/风/落叶/枯萎/奔跑/烟雾/星光 Animated strips | 8 组 |
-| `game/pixel-plants/` | 植物像素素材：169 枚瓦片（16×16 花草本草 / 32×32 树木）+ 12 组摇曳帧条 Plant tiles | 181 |
+| `game/pixel-plants/` | 植物像素素材：169 枚瓦片（64×64）+ 12 组摇曳帧条 Plant tiles | 181 |
 | `game/speed-rouge/` | 平台跳跃游戏全套素材（机关/建筑/关卡/FX/角色）Full platformer set | 151 |
 | `icons/vector/` | 扁平矢量图标（SVG，8 组）Flat SVG icons | 69 |
 | `branding/` | Logo、社交卡片等品牌资产 | 3 |
@@ -78,7 +78,7 @@ Professional pixel-art avatars, game UI, tiles, animated strips and vector icons
 - **浏览 / Browse:** 打开上方在线展示站，或仓库内 `index.html`（附搜索、分类、灯箱、一键下载）。
 - **取用 / Grab:** 直接下载 PNG/SVG；需要改色改形请下载对应的 `.aseprite` 源文件（带 [Aseprite](https://www.aseprite.org/) 打开即可）。
 - **头像规格 / Avatars:** 512×512 导出图，源文件 256×256 分层（`bg` / `icon` / `text`）。
-- **游戏素材规格 / Game assets:** 16×16 原生尺寸，放大时请使用最近邻插值（`image-rendering: pixelated`）。
+- **游戏素材规格 / Game assets:** 原生尺寸（UI/地贴/动画 16×16、HD 32×32、植物 64×64），放大时请使用最近邻插值（`image-rendering: pixelated`）。
 
 ```html
 <!-- 网页中使用像素图 / crisp pixels on the web -->
@@ -95,7 +95,7 @@ pixel-vault/
 │   ├── pixel-ui-pack/  16×16 UI 包 
 │   ├── pixel-tiles/    16×16 地贴 
 │   ├── pixel-anim/     动画帧条（水流/火焰/风/落叶/枯萎/奔跑）
-│   ├── pixel-plants/   植物瓦片与摇曳帧条（花草 16×16 / 树木 32×32）
+│   ├── pixel-plants/   植物瓦片与摇曳帧条（64×64）
 │   ├── speed-rouge/    平台游戏全套素材
 │   └── bianqv/
 ├── icons/              vector(SVG) · speed-rouge

@@ -1,6 +1,7 @@
 --[[ pixel-plants :: build 4-frame sway animations for a representative subset.
-     Frame 1 is the still tile; frames 2-4 bake ±1px horizontal offsets into
+     Frame 1 is the still tile; frames 2-4 bake horizontal offsets into
      the bloom / leaf cels (shadow and stem stay put) so the head sways.
+     Offsets scale with the canvas (1px on the 16px tuning grid).
      Duration 150ms per frame, ping-pong loop -> 4 frames / 600ms cycle.
 ]]
 local base = "C:/Atian/Project/pixel-vault/game/pixel-plants/"
@@ -9,7 +10,6 @@ local SLUGS = { "ling-lan", "yue-jian-cao", "yang-gan-ju", "man-zhu-sha-hua",
                 "pu-ti-shu", "sheng-shi-hua", "fo-zhu", "xuan-cao" }
 local TOP = { bloom = true, core = true, glint = true }
 local MID = { leaf = true }
-local DXS = { 0, 1, 0, -1 }
 local DUR = 0.15
 
 local function build(slug)
@@ -17,6 +17,8 @@ local function build(slug)
   local spr = app.open(path)
   if not spr then return "open-failed" end
   local out = base .. slug .. "-sway.aseprite"
+  local sw = math.max(1, math.floor(spr.width / 16 + 0.5))
+  local DXS = { 0, sw, 0, -sw }
 
   for i = 1, 3 do spr:newFrame() end
   for _, layer in ipairs(spr.layers) do

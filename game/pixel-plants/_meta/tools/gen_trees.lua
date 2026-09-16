@@ -2,6 +2,12 @@
      Deterministic pixel-art plant tiles. No randomness: a per-item seed
      drives all variation so every rerun reproduces byte-identical output.
 
+     Canvas: every tile is drawn on a 64x64 grid. The composition was tuned
+     on a 16px grid (trees on 32px), so every archetype receives a scale
+     factor S = w/16 (trees ST = w/32) and multiplies its hand-placed
+     pixel constants by it; radii that were already proportional to w/h
+     recompute directly at the larger canvas.
+
      Layer stack (bottom -> top), identical for every tile:
        shadow | stem | leaf | bloom-shade | bloom | core | glint
 ]]
@@ -18,6 +24,13 @@ local function pset(im, x, y, col)
   end
 end
 
+-- s x s block of col with its top-left at (x, y): one tuned pixel, scaled
+local function blk(im, x, y, col, s)
+  for dy = 0, s - 1 do
+    for dx = 0, s - 1 do pset(im, x + dx, y + dy, col) end
+  end
+end
+
 local function line(im, x0, y0, x1, y1, col)
   local dx, dy = math.abs(x1 - x0), math.abs(y1 - y0)
   local sx = x0 < x1 and 1 or -1
@@ -25,6 +38,25 @@ local function line(im, x0, y0, x1, y1, col)
   local err = dx - dy
   while true do
     pset(im, x0, y0, col)
+    if x0 == x1 and y0 == y1 then break end
+    local e2 = 2 * err
+    if e2 > -dy then err = err - dy; x0 = x0 + sx end
+    if e2 < dx then err = err + dx; y0 = y0 + sy end
+  end
+end
+
+-- Bresenham with a centered t x t brush (thick stems / branches)
+local function tline(im, x0, y0, x1, y1, col, t)
+  if t <= 1 then line(im, x0, y0, x1, y1, col); return end
+  local o = math.floor(t / 2)
+  local dx, dy = math.abs(x1 - x0), math.abs(y1 - y0)
+  local sx = x0 < x1 and 1 or -1
+  local sy = y0 < y1 and 1 or -1
+  local err = dx - dy
+  while true do
+    for by = 0, t - 1 do
+      for bx = 0, t - 1 do pset(im, x0 + bx - o, y0 + by - o, col) end
+    end
     if x0 == x1 and y0 == y1 then break end
     local e2 = 2 * err
     if e2 > -dy then err = err - dy; x0 = x0 + sx end
@@ -55,16 +87,17 @@ local function ring(im, cx, cy, r, col, keep)
   end
 end
 
--- elliptical shadow blob, 1-2 px tall
-local function ground_shadow(I, w, h, cx, col)
-  local rx = math.max(3, math.floor(w * 0.26))
+-- elliptical ground shadow: 1 full row + S central rows
+local function ground_shadow(I, w, h, cx, col, S)
+  local rx1 = math.max(3, math.floor(w * 0.26)) + 1
   local cy = h - 2
-  local rx1 = rx + 1
   for x = cx - rx1, cx + rx1 do
     local t = (x - cx) / (rx1 + 0.5)
     if t * t <= 1 then
       pset(I.shadow, x, cy, col)
-      if t * t <= 0.45 then pset(I.shadow, x, cy - 1, col) end
+      if t * t <= 0.45 then
+        for j = 1, S do pset(I.shadow, x, cy - j, col) end
+      end
     end
   end
 end
@@ -76,31 +109,34 @@ local function rng(seed, i)
 end
 
 -- ---------------------------------------------------------------- plant parts
-local function stem_to(I, x0, y0, x1, y1, col)
-  line(I.stem, x0, y0, x1, y1, col)
+local function stem_to(I, x0, y0, x1, y1, col, t)
+  tline(I.stem, x0, y0, x1, y1, col, t or 1)
 end
 
 -- small side leaf; dir = -1 left, +1 right
-local function side_leaf(I, x, y, dir, colD, colL)
-  pset(I.leaf, x, y, colD)
-  pset(I.leaf, x + dir, y - 1, colL)
-  pset(I.leaf, x + dir, y, colL)
-  pset(I.leaf, x + 2 * dir, y, colL)
-  pset(I.leaf, x + dir, y + 1, colD)
-  pset(I.leaf, x + 2 * dir, y + 1, colD)
+local function side_leaf(I, x, y, dir, colD, colL, S)
+  blk(I.leaf, x, y, colD, S)
+  blk(I.leaf, x + dir * S, y - S, colL, S)
+  blk(I.leaf, x + dir * S, y, colL, S)
+  blk(I.leaf, x + 2 * dir * S, y, colL, S)
+  blk(I.leaf, x + dir * S, y + S, colD, S)
+  blk(I.leaf, x + 2 * dir * S, y + S, colD, S)
 end
 
-local function blade(I, x, yTop, yBase, lean, colL, colD)
+local function blade(I, x, yTop, yBase, lean, colL, colD, S)
   local steps = yBase - yTop
   for i = 0, steps do
     local t = i / math.max(1, steps)
     local x0 = x + math.floor(lean * t + 0.5)
-    pset(I.leaf, x0, yTop + i, (i > steps * 0.6) and colD or colL)
+    local wdt = math.max(1, math.floor(S * (0.3 + 0.7 * t) + 0.5))
+    for dx = 0, wdt - 1 do
+      pset(I.leaf, x0 + dx - math.floor(wdt / 2), yTop + i, (t > 0.6) and colD or colL)
+    end
   end
 end
 
 -- round bloom head with a shaded lower-right rim, core dot, single glint
-local function bloom_round(I, cx, cy, r, P)
+local function bloom_round(I, cx, cy, r, P, g)
   disc(I.bloom, cx, cy, r, P.main)
   -- lower-right shade rim (skip for 1px heads: it would erase the main colour)
   if r >= 2 then
@@ -118,14 +154,14 @@ local function bloom_round(I, cx, cy, r, P)
   if r >= 2 then
     disc(I.core, cx, cy, math.floor(r / 3), P.dot)
   else
-    pset(I.core, cx, cy, P.dot)
+    blk(I.core, cx, cy, P.dot, g)
   end
-  pset(I.glint, cx - 1, cy - 1, P.glint)
-  if r >= 3 then pset(I.glint, cx - r + 1, cy - 1, P.glint) end
+  blk(I.glint, cx - 1, cy - 1, P.glint, g)
+  if r >= 3 then blk(I.glint, cx - r + 1, cy - 1, P.glint, g) end
 end
 
 -- star bloom: n thin petals radiating from a small core
-local function bloom_star(I, cx, cy, n, rin, rout, P)
+local function bloom_star(I, cx, cy, n, rin, rout, P, g)
   for i = 0, n - 1 do
     local ang = (i / n) * 2 * math.pi + 0.35
     for t = rin, rout do
@@ -135,28 +171,30 @@ local function bloom_star(I, cx, cy, n, rin, rout, P)
            (i % 2 == 0) and P.main or P.accent)
     end
   end
-  disc(I.core, cx, cy, 1, P.dot)
-  pset(I.glint, cx, cy - 1, P.glint)
+  disc(I.core, cx, cy, g, P.dot)
+  blk(I.glint, cx, cy - 1, P.glint, g)
 end
 
--- one bell / trumpet hanging downward
-local function bloom_bell(I, cx, cy, P, wide)
-  local wdt = wide or 3
+-- one bell / trumpet hanging downward (unused by archetypes, kept for parity)
+local function bloom_bell(I, cx, cy, P, wide, S)
+  local g = math.max(1, math.floor(S / 2 + 0.5))
   for i = 0, 3 do
-    local half = math.floor(i / 2)
-    for x = cx - half, cx + half do pset(I.bloom, x, cy + i, P.main) end
+    local half = math.floor(i * S / 2)
+    for yy = 0, S - 1 do
+      for x = cx - half, cx + half do pset(I.bloom, x, cy + i * S + yy, P.main) end
+    end
   end
-  pset(I.bloom, cx, cy + 4, P.dot)
-  pset(I.bloomShade, cx + 1, cy + 3, P.accent)
-  pset(I.bloomShade, cx, cy, P.accent)
-  pset(I.glint, cx - 1, cy + 1, P.glint)
+  blk(I.bloom, cx, cy + 4 * S, P.dot, g)
+  for yy = 0, S - 1 do pset(I.bloomShade, cx + S, cy + 3 * S + yy, P.accent) end
+  blk(I.bloomShade, cx, cy, P.accent, S)
+  blk(I.glint, cx - S, cy + S, P.glint, g)
 end
 
-local function bead(I, cx, cy, r, P)
+local function bead(I, cx, cy, r, P, g)
   disc(I.bloom, cx, cy, r, P.main)
-  pset(I.bloomShade, cx + r, cy + r, P.accent)
-  if r >= 1 then pset(I.core, cx, cy, P.dot) end
-  pset(I.glint, cx - 1, cy - 1, P.glint)
+  blk(I.bloomShade, cx + r, cy + r, P.accent, g)
+  if r >= 1 then blk(I.core, cx, cy, P.dot, g) end
+  blk(I.glint, cx - 1, cy - 1, P.glint, g)
 end
 
 -- 8 compass directions; y is halved so heads stay round on a square grid
@@ -171,14 +209,18 @@ local function offy(k, dy)
 end
 
 -- one hanging bell (narrow top, wider rim, dot at the mouth)
-local function bell_at(I, bx, by, P)
-  pset(I.bloom, bx, by, P.main)
-  for x = bx - 1, bx + 1 do pset(I.bloom, x, by + 1, P.main) end
-  for x = bx - 1, bx + 1 do pset(I.bloom, x, by + 2, P.main) end
-  pset(I.bloomShade, bx + 1, by + 1, P.accent)
-  pset(I.bloomShade, bx + 1, by + 2, P.accent)
-  pset(I.core, bx, by + 2, P.dot)
-  pset(I.glint, bx - 1, by + 1, P.glint)
+local function bell_at(I, bx, by, P, S)
+  local g = math.max(1, math.floor(S / 2 + 0.5))
+  blk(I.bloom, bx, by, P.main, S)
+  for row = 1, 2 do
+    for yy = 0, S - 1 do
+      for x = bx - S, bx + S do pset(I.bloom, x, by + row * S + yy, P.main) end
+    end
+  end
+  for yy = 0, 2 * S - 1 do pset(I.bloomShade, bx + S, by + S + yy, P.accent) end
+  blk(I.bloomShade, bx, by, P.accent, S)
+  blk(I.core, bx, by + 2 * S, P.dot, S)
+  blk(I.glint, bx - S, by + S, P.glint, g)
 end
 
 -- rounded two-tone lobe (lithops body, paw pads)
@@ -194,183 +236,188 @@ local function lobe(im, cx, cy, r, colTop, colBot, splitY)
 end
 
 -- ---------------------------------------------------------------- archetypes
--- Every archetype receives: I (layer images), P (palette), w, h, and seed.
+-- Every archetype receives: I (layer images), P (palette), w, h, seed,
+-- S (16-grid scale), ST (32-grid scale), g (small-detail unit).
 local A = {}
 
 -- single blossom on a stem with two side leaves
-function A.floret(I, P, w, h, sd)
+function A.floret(I, P, w, h, sd, S, ST, g)
   local cx = math.floor(w / 2)
-  local gy = h - 3
+  local gy = h - 2 - S
   local by = math.floor(h * 0.38)
-  stem_to(I, cx, by + 2, cx, gy, P.leafDark)
-  stem_to(I, cx, by + 2, cx + 1, gy - 1, P.leafDark)
-  side_leaf(I, cx - 1, gy - 3, -1, P.leafDark, P.leafLight)
-  side_leaf(I, cx + 1, gy - 5, 1, P.leafDark, P.leafLight)
-  bloom_round(I, cx, by, math.max(2, math.floor(w * 0.22)), P)
+  stem_to(I, cx, by + 2 * S, cx, gy, P.leafDark, S)
+  stem_to(I, cx, by + 2 * S, cx + S, gy - S, P.leafDark, S)
+  side_leaf(I, cx - S, gy - 3 * S, -1, P.leafDark, P.leafLight, S)
+  side_leaf(I, cx + S, gy - 5 * S, 1, P.leafDark, P.leafLight, S)
+  bloom_round(I, cx, by, math.max(2, math.floor(w * 0.22)), P, g)
 end
 
 -- many thin petals, flat head
-function A.daisy(I, P, w, h, sd)
+function A.daisy(I, P, w, h, sd, S, ST, g)
   local cx = math.floor(w / 2)
-  local gy = h - 3
+  local gy = h - 2 - S
   local by = math.floor(h * 0.34)
-  stem_to(I, cx, by + 3, cx, gy, P.leafDark)
-  side_leaf(I, cx - 1, gy - 4, -1, P.leafDark, P.leafLight)
-  side_leaf(I, cx + 1, gy - 6, 1, P.leafDark, P.leafLight)
+  stem_to(I, cx, by + 3 * S, cx, gy, P.leafDark, S)
+  side_leaf(I, cx - S, gy - 4 * S, -1, P.leafDark, P.leafLight, S)
+  side_leaf(I, cx + S, gy - 6 * S, 1, P.leafDark, P.leafLight, S)
   local rout = math.max(3, math.floor(w * 0.24))
+  local cr = math.max(1, math.floor(S / 2) + 1)
+  local kin = cr + math.max(1, math.floor(S / 2))
   for i = 1, 8 do
     local d = DIR8[i]
-    for k = 2, rout do
+    for k = kin, rout do
       local x = cx + d[1] * k
       local y = by + offy(k, d[2])
       if k == rout then
-        pset(I.bloomShade, x, y, P.accent)
+        blk(I.bloomShade, x, y, P.accent, g)
       else
-        pset(I.bloom, x, y, P.main)
+        blk(I.bloom, x, y, P.main, g)
       end
     end
   end
-  disc(I.core, cx, by, 1, P.dot)
-  pset(I.glint, cx - 1, by - 1, P.glint)
+  disc(I.core, cx, by, cr, P.dot)
+  blk(I.glint, cx - g, by - g, P.glint, g)
 end
 
 -- long thin radiating petals, bare stem (spider lily)
-function A.spider(I, P, w, h, sd)
+function A.spider(I, P, w, h, sd, S, ST, g)
   local cx = math.floor(w / 2)
-  local gy = h - 3
+  local gy = h - 2 - S
   local by = math.floor(h * 0.36)
-  stem_to(I, cx, gy, cx, by + 2, P.leafDark)
+  stem_to(I, cx, gy, cx, by + 2 * S, P.leafDark, S)
   local rout = math.max(4, math.floor(w * 0.34))
+  local cr = math.max(1, math.floor(S / 2) + 1)
+  local kin = cr + math.max(1, math.floor(S / 2))
   for i = 1, 6 do
     local d = DIR6[i]
-    for k = 2, rout do
-      pset(I.bloom, cx + d[1] * k, by + offy(k, d[2]), P.main)
+    for k = kin, rout do
+      blk(I.bloom, cx + d[1] * k, by + offy(k, d[2]), P.main, g)
     end
-    pset(I.bloomShade, cx + d[1] * (rout + 1), by + offy(rout, d[2]) + 1, P.accent)
+    blk(I.bloomShade, cx + d[1] * (rout + g), by + offy(rout, d[2]) + g, P.accent, g)
   end
-  disc(I.core, cx, by, 1, P.dot)
-  pset(I.glint, cx - 1, by - 1, P.glint)
-  pset(I.core, cx - 2, by - 3, P.dot)
-  pset(I.core, cx + 2, by - 3, P.dot)
+  disc(I.core, cx, by, cr, P.dot)
+  blk(I.glint, cx - g, by - g, P.glint, g)
+  blk(I.core, cx - 2 * S, by - 3 * S, P.dot, g)
+  blk(I.core, cx + 2 * S, by - 3 * S, P.dot, g)
 end
 
 -- bells hanging from an arched stem
-function A.bell(I, P, w, h, sd)
+function A.bell(I, P, w, h, sd, S, ST, g)
   local cx = math.floor(w / 2)
-  local gy = h - 3
+  local gy = h - 2 - S
   local top = math.floor(h * 0.24)
-  stem_to(I, cx, gy, cx, top, P.leafDark)
-  side_leaf(I, cx - 1, gy - 4, -1, P.leafDark, P.leafLight)
-  side_leaf(I, cx + 1, gy - 6, 1, P.leafDark, P.leafLight)
-  local n = (w >= 32) and 4 or 3
-  local gap = (w >= 32) and 6 or 4
+  stem_to(I, cx, gy, cx, top, P.leafDark, S)
+  side_leaf(I, cx - S, gy - 4 * S, -1, P.leafDark, P.leafLight, S)
+  side_leaf(I, cx + S, gy - 6 * S, 1, P.leafDark, P.leafLight, S)
+  local n = (w >= 48) and 5 or ((w >= 32) and 4 or 3)
+  local gap = (w >= 48) and math.floor(w * 0.14) or ((w >= 32) and 6 or 4)
   for i = 1, n do
     local off = (i - (n + 1) / 2)
     local bx = cx + math.floor(off * gap + (off > 0 and 0.5 or -0.5))
-    local by = top + 2 + math.floor(math.abs(off) + 0.5)
-    stem_to(I, cx, top + 2, bx, by, P.leafDark)
-    bell_at(I, bx, by, P)
+    local by = top + 2 * S + math.floor(math.abs(off) * 0.75 * S + 0.5)
+    stem_to(I, cx, top + 2 * S, bx, by, P.leafDark, S)
+    bell_at(I, bx, by, P, S)
   end
 end
 
 -- vertical spike of florets (lavender / lupin / larkspur)
-function A.spike(I, P, w, h, sd)
+function A.spike(I, P, w, h, sd, S, ST, g)
   local cx = math.floor(w / 2)
-  local gy = h - 3
+  local gy = h - 2 - S
   local top = math.floor(h * 0.22)
-  stem_to(I, cx, gy, cx, top, P.leafDark)
-  blade(I, cx - 2, gy - 6, gy, -1, P.leafLight, P.leafDark)
-  blade(I, cx + 2, gy - 6, gy, 1, P.leafLight, P.leafDark)
-  blade(I, cx - 4, gy - 3, gy, -1, P.leafDark, P.leafDark)
+  stem_to(I, cx, gy, cx, top, P.leafDark, S)
+  blade(I, cx - 2 * S, gy - 6 * S, gy, -S, P.leafLight, P.leafDark, S)
+  blade(I, cx + 2 * S, gy - 6 * S, gy, S, P.leafLight, P.leafDark, S)
+  blade(I, cx - 4 * S, gy - 3 * S, gy, -S, P.leafDark, P.leafDark, S)
   local rows = math.max(5, math.floor(h * 0.4))
   for i = 0, rows do
     local y = top + i
     local t = 1 - i / rows
-    local half = (t > 0.75) and 0 or (t > 0.35 and 1 or 2)
+    local half = (t > 0.75) and 0 or (t > 0.35 and S or 2 * S)
     for x = cx - half, cx + half do
       local col = ((x + y) % 3 == 0) and P.accent or P.main
       pset(I.bloom, x, y, col)
     end
   end
-  pset(I.core, cx, top, P.dot)
-  pset(I.glint, cx - 1, top + 1, P.glint)
+  blk(I.core, cx, top, P.dot, g)
+  blk(I.glint, cx - g, top + g, P.glint, g)
 end
 
 -- 3 small round blooms on branching stems
-function A.cluster(I, P, w, h, sd)
+function A.cluster(I, P, w, h, sd, S, ST, g)
   local cx = math.floor(w / 2)
-  local gy = h - 3
+  local gy = h - 2 - S
   local by = math.floor(h * 0.42)
-  stem_to(I, cx, by + 3, cx, gy, P.leafDark)
-  side_leaf(I, cx - 1, gy - 4, -1, P.leafDark, P.leafLight)
-  side_leaf(I, cx + 1, gy - 5, 1, P.leafDark, P.leafLight)
-  local spots = { { -math.floor(w * 0.18), -1 }, { 0, -3 }, { math.floor(w * 0.18), 0 } }
+  stem_to(I, cx, by + 3 * S, cx, gy, P.leafDark, S)
+  side_leaf(I, cx - S, gy - 4 * S, -1, P.leafDark, P.leafLight, S)
+  side_leaf(I, cx + S, gy - 5 * S, 1, P.leafDark, P.leafLight, S)
+  local spots = { { -math.floor(w * 0.18), -S }, { 0, -3 * S }, { math.floor(w * 0.18), 0 } }
   for i, s in ipairs(spots) do
     local bx, byy = cx + s[1], by + s[2]
-    stem_to(I, cx, by + 2, bx, byy + 2, P.leafDark)
-    bloom_round(I, bx, byy, math.max(1, math.floor(w * 0.11)), P)
+    stem_to(I, cx, by + 2 * S, bx, byy + 2 * S, P.leafDark, S)
+    bloom_round(I, bx, byy, math.max(1, math.floor(w * 0.11)), P, g)
   end
 end
 
 -- flat-topped umbel: many tiny heads fanning from one point
-function A.umbel(I, P, w, h, sd)
+function A.umbel(I, P, w, h, sd, S, ST, g)
   local cx = math.floor(w / 2)
-  local gy = h - 3
+  local gy = h - 2 - S
   local top = math.floor(h * 0.36)
-  stem_to(I, cx, gy, cx, top, P.leafDark)
-  side_leaf(I, cx - 1, gy - 4, -1, P.leafDark, P.leafLight)
-  side_leaf(I, cx + 1, gy - 6, 1, P.leafDark, P.leafLight)
-  local n = (w >= 32) and 7 or 5
+  stem_to(I, cx, gy, cx, top, P.leafDark, S)
+  side_leaf(I, cx - S, gy - 4 * S, -1, P.leafDark, P.leafLight, S)
+  side_leaf(I, cx + S, gy - 6 * S, 1, P.leafDark, P.leafLight, S)
+  local n = (w >= 48) and 9 or ((w >= 32) and 7 or 5)
   for i = 1, n do
     local t = (i - (n + 1) / 2) / ((n + 1) / 2)
     local bx = cx + math.floor(t * w * 0.28)
     local by = top - math.floor((1 - math.abs(t)) * h * 0.08)
-    stem_to(I, cx, top + 1, bx, by, P.leafDark)
-    bloom_round(I, bx, by - 1, 1, P)
+    stem_to(I, cx, top + S, bx, by, P.leafDark, S)
+    bloom_round(I, bx, by - S, math.max(1, math.floor(S / 2) + 1), P, g)
   end
-  pset(I.core, cx, top, P.dot)
+  blk(I.core, cx, top, P.dot, g)
 end
 
 -- leafy herbal clump, tiny dots as flowers
-function A.herb(I, P, w, h, sd)
+function A.herb(I, P, w, h, sd, S, ST, g)
   local cx = math.floor(w / 2)
-  local gy = h - 3
-  local n = (w >= 32) and 6 or 5
+  local gy = h - 2 - S
+  local n = (w >= 48) and 7 or ((w >= 32) and 6 or 5)
   for i = 1, n do
     local t = (i - (n + 1) / 2) / ((n + 1) / 2)
     local lean = t * w * 0.34
     local tall = h * (0.34 + 0.14 * math.abs(t))
-    blade(I, cx, math.floor(gy - tall), gy, lean, P.leafLight, P.leafDark)
+    blade(I, cx, math.floor(gy - tall), gy, lean, P.leafLight, P.leafDark, S)
   end
   local k = rng(sd, 7)
-  pset(I.bloom, cx - 1 + math.floor(k * 2), gy - math.floor(h * 0.5), P.main)
-  pset(I.bloom, cx + 2, gy - math.floor(h * 0.44), P.accent)
-  pset(I.core, cx + 1, gy - math.floor(h * 0.56), P.dot)
+  blk(I.bloom, cx - S + math.floor(k * 2 * S), gy - math.floor(h * 0.5), P.main, g)
+  blk(I.bloom, cx + 2 * S, gy - math.floor(h * 0.44), P.accent, g)
+  blk(I.core, cx + S, gy - math.floor(h * 0.56), P.dot, g)
 end
 
 -- pure grass / reed clump
-function A.grass(I, P, w, h, sd)
+function A.grass(I, P, w, h, sd, S, ST, g)
   local cx = math.floor(w / 2)
-  local gy = h - 3
-  local n = (w >= 32) and 7 or 6
+  local gy = h - 2 - S
+  local n = (w >= 48) and 8 or ((w >= 32) and 7 or 6)
   for i = 1, n do
     local t = (i - (n + 1) / 2) / ((n + 1) / 2)
     local lean = t * w * 0.3
     local tall = h * (0.42 + 0.2 * (1 - math.abs(t)))
-    blade(I, cx, math.floor(gy - tall), gy, lean, P.leafLight, P.leafDark)
+    blade(I, cx, math.floor(gy - tall), gy, lean, P.leafLight, P.leafDark, S)
   end
-  blade(I, cx, math.floor(gy - h * 0.68), gy, 0, P.leafDark, P.leafDark)
-  pset(I.bloom, cx, math.floor(gy - h * 0.62), P.main)
-  pset(I.core, cx, math.floor(gy - h * 0.66), P.dot)
+  blade(I, cx, math.floor(gy - h * 0.68), gy, 0, P.leafDark, P.leafDark, S)
+  blk(I.bloom, cx, math.floor(gy - h * 0.62), P.main, g)
+  blk(I.core, cx, math.floor(gy - h * 0.66), P.dot, g)
 end
 
 -- climbing / twining stems with leaves and blooms near the top
-function A.vine(I, P, w, h, sd)
+function A.vine(I, P, w, h, sd, S, ST, g)
   local cx = math.floor(w / 2)
-  local gy = h - 3
+  local gy = h - 2 - S
   local top = math.floor(h * 0.18)
   local amp = w * 0.16
-  local steps = math.max(8, math.floor(h * 0.7))
+  local steps = math.max(8, math.floor(h * 0.9))
   local prev = nil
   local at = {}
   for i = 0, steps do
@@ -378,84 +425,98 @@ function A.vine(I, P, w, h, sd)
     local x = cx + math.floor(math.sin(t * 5.0) * amp + 0.5)
     local y = gy - math.floor(t * (gy - top))
     at[i] = { x, y }
-    if prev then stem_to(I, prev[1], prev[2], x, y, P.leafDark) end
+    if prev then stem_to(I, prev[1], prev[2], x, y, P.leafDark, S) end
     prev = { x, y }
   end
-  for i = 2, steps - 4, 3 do
+  local stride = math.max(3, math.floor(steps / 5))
+  for i = stride, steps - stride, stride do
     local p = at[i]
-    side_leaf(I, p[1], p[2], (i % 2 == 0) and 1 or -1, P.leafDark, P.leafLight)
+    side_leaf(I, p[1], p[2], (i % 2 == 0) and 1 or -1, P.leafDark, P.leafLight, S)
   end
   for i = 0, 2 do
     local p = at[math.floor(steps * (0.74 + i * 0.11))]
     if i == 1 then
-      bloom_round(I, p[1], p[2] - 1, math.max(1, math.floor(w * 0.12)), P)
+      bloom_round(I, p[1], p[2] - S, math.max(1, math.floor(w * 0.12)), P, g)
     else
-      bell_at(I, p[1], p[2], P)
+      bell_at(I, p[1], p[2], P, S)
     end
   end
 end
 
 -- slender orchid-like bloom on a tall stem
-function A.orchid(I, P, w, h, sd)
+function A.orchid(I, P, w, h, sd, S, ST, g)
   local cx = math.floor(w / 2)
-  local gy = h - 3
+  local gy = h - 2 - S
   local by = math.floor(h * 0.3)
-  stem_to(I, cx, gy, cx, by + 2, P.leafDark)
-  blade(I, cx - 2, gy - 6, gy, -2, P.leafLight, P.leafDark)
-  blade(I, cx + 2, gy - 6, gy, 2, P.leafLight, P.leafDark)
-  -- two side petals, one top petal, one lip
-  pset(I.bloom, cx - 3, by, P.main); pset(I.bloom, cx - 2, by, P.main)
-  pset(I.bloom, cx + 3, by, P.main); pset(I.bloom, cx + 2, by, P.main)
-  pset(I.bloom, cx - 1, by - 1, P.main); pset(I.bloom, cx + 1, by - 1, P.main)
-  pset(I.bloom, cx, by - 2, P.main); pset(I.bloom, cx - 1, by - 2, P.accent)
-  pset(I.bloom, cx + 1, by - 2, P.accent)
-  pset(I.bloom, cx, by + 1, P.main); pset(I.bloom, cx, by + 2, P.dot)
-  pset(I.bloomShade, cx - 2, by + 1, P.accent); pset(I.bloomShade, cx + 2, by + 1, P.accent)
-  disc(I.core, cx, by, 0, P.dot)
-  pset(I.glint, cx - 1, by - 1, P.glint)
+  stem_to(I, cx, gy, cx, by + 2 * S, P.leafDark, S)
+  blade(I, cx - 2 * S, gy - 6 * S, gy, -2 * S, P.leafLight, P.leafDark, S)
+  blade(I, cx + 2 * S, gy - 6 * S, gy, 2 * S, P.leafLight, P.leafDark, S)
+  -- connected bloom in S-blocks: standard top, accent falls, wide side petals, lip
+  local rows = {
+    { -3, { { 0, "main" } } },
+    { -2, { { -1, "accent" }, { 0, "main" }, { 1, "accent" } } },
+    { -1, { { -1, "main" }, { 0, "main" }, { 1, "main" } } },
+    { 0, { { -3, "main" }, { -2, "main" }, { -1, "main" },
+           { 0, "main" }, { 1, "main" }, { 2, "main" }, { 3, "main" } } },
+    { 1, { { 0, "main" } } },
+  }
+  for _, row in ipairs(rows) do
+    for _, cell in ipairs(row[2]) do
+      blk(I.bloom, cx + cell[1] * S, by + row[1] * S, P[cell[2]], S)
+    end
+  end
+  blk(I.bloom, cx, by + 2 * S, P.dot, S)
+  blk(I.bloomShade, cx - 2 * S, by + S, P.accent, S)
+  blk(I.bloomShade, cx + 2 * S, by + S, P.accent, S)
+  blk(I.glint, cx - g, by - 2 * S - g, P.glint, g)
 end
 
 -- berry / fruit cluster
-function A.berry(I, P, w, h, sd)
+function A.berry(I, P, w, h, sd, S, ST, g)
   local cx = math.floor(w / 2)
-  local gy = h - 3
+  local gy = h - 2 - S
   local top = math.floor(h * 0.4)
-  stem_to(I, cx, gy, cx, top, P.leafDark)
-  side_leaf(I, cx - 1, gy - 4, -1, P.leafDark, P.leafLight)
-  side_leaf(I, cx + 1, gy - 6, 1, P.leafDark, P.leafLight)
+  stem_to(I, cx, gy, cx, top, P.leafDark, S)
+  side_leaf(I, cx - S, gy - 4 * S, -1, P.leafDark, P.leafLight, S)
+  side_leaf(I, cx + S, gy - 6 * S, 1, P.leafDark, P.leafLight, S)
   local pts = { { 0, 0 }, { -1, 1 }, { 1, 1 }, { 0, 2 }, { -1, 3 }, { 1, 3 } }
   local k = (w >= 32) and 6 or 4
+  local r = (w >= 48) and S or math.max(1, math.floor(S / 2))
   for i = 1, k do
     local p = pts[i]
-    bead(I, cx + p[1] * 2, top + p[2] * 2 + 1, (w >= 32) and 2 or 1, P)
+    bead(I, cx + p[1] * 2 * S, top + p[2] * 2 * S + S, r, P, g)
   end
 end
 
 -- floating aquatic: pads on water + one bloom
-function A.aquatic(I, P, w, h, sd)
+function A.aquatic(I, P, w, h, sd, S, ST, g)
   local cx = math.floor(w / 2)
-  local wy = h - 4
+  local wy = h - 4 * S
   local pad = P.leafLight
-  for x = 2, w - 3 do pset(I.stem, x, wy + 2, P.water) end
-  pset(I.stem, 2, wy + 1, P.waterHi)
-  pset(I.stem, w - 3, wy + 1, P.waterHi)
-  disc(I.leaf, cx - math.floor(w * 0.2), wy + 2, math.max(2, math.floor(w * 0.16)), pad)
-  pset(I.leaf, cx - math.floor(w * 0.2), wy + 2, P.leafDark)
-  disc(I.bloom, cx + math.floor(w * 0.14), wy, 2, P.main)
-  pset(I.bloomShade, cx + math.floor(w * 0.14) + 1, wy + 1, P.accent)
-  pset(I.core, cx + math.floor(w * 0.14), wy, P.dot)
-  pset(I.glint, cx + math.floor(w * 0.14) - 1, wy - 1, P.glint)
+  for x = 2 * S, w - 1 - 2 * S do pset(I.stem, x, wy + 2 * S, P.water) end
+  for yy = 0, S - 1 do
+    pset(I.stem, 2 * S, wy + S + yy, P.waterHi)
+    pset(I.stem, w - 1 - 3 * S, wy + S + yy, P.waterHi)
+  end
+  disc(I.leaf, cx - math.floor(w * 0.2), wy + 2 * S, math.max(2, math.floor(w * 0.16)), pad)
+  blk(I.leaf, cx - math.floor(w * 0.2), wy + 2 * S, P.leafDark, g)
+  local br = math.max(2, math.floor(w * 0.125))
+  local bx = cx + math.floor(w * 0.14)
+  disc(I.bloom, bx, wy, br, P.main)
+  blk(I.bloomShade, bx + math.floor(br * 0.6), wy + math.floor(br * 0.6), P.accent, g)
+  blk(I.core, bx, wy, P.dot, g)
+  blk(I.glint, bx - g, wy - g, P.glint, g)
 end
 
 -- fungus: cap + stalk, or kidney-shaped bracket with rings
-function A.fungus(I, P, w, h, sd)
+function A.fungus(I, P, w, h, sd, S, ST, g)
   local cx = math.floor(w / 2)
-  local gy = h - 3
+  local gy = h - 2 - S
   local capy = math.floor(h * 0.42)
-  for y = capy + 1, gy do
-    pset(I.stem, cx - 1, y, P.leafLight)
-    pset(I.stem, cx, y, P.leafLight)
-    pset(I.stem, cx + 1, y, P.leafDark)
+  for y = capy + S, gy do
+    for x = cx - S, cx + S do
+      pset(I.stem, x, y, (x > cx) and P.leafDark or P.leafLight)
+    end
   end
   local r = math.max(2, math.floor(w * 0.26))
   for y = capy - math.floor(r * 0.7), capy do
@@ -466,23 +527,25 @@ function A.fungus(I, P, w, h, sd)
            (dy > r * 0.45) and P.accent or P.main)
     end
   end
-  pset(I.core, cx - 1, capy - 1, P.dot)
-  pset(I.core, cx + 1, capy - 1, P.dot)
-  pset(I.glint, cx, capy - 1, P.glint)
+  blk(I.core, cx - S - g, capy - S, P.dot, g)
+  blk(I.core, cx + S, capy - S, P.dot, g)
+  blk(I.glint, cx - g, capy - S, P.glint, g)
 end
 
 -- round-canopy tree
-function A.tree_round(I, P, w, h, sd)
+function A.tree_round(I, P, w, h, sd, S, ST, g)
   local cx = math.floor(w / 2)
   local gy = h - 2
   local trunkTop = gy - math.floor(h * 0.3)
+  local tw = 3 * ST
   for y = trunkTop, gy do
-    pset(I.stem, cx - 1, y, P.trunk)
-    pset(I.stem, cx, y, P.trunk)
-    pset(I.stem, cx + 1, y, P.trunkDark)
+    for i = 0, tw - 1 do
+      pset(I.stem, cx - math.floor(tw / 2) + i, y,
+           (i >= tw - ST) and P.trunkDark or P.trunk)
+    end
   end
-  pset(I.stem, cx - 2, gy, P.trunkDark)
-  pset(I.stem, cx + 2, gy, P.trunkDark)
+  blk(I.stem, cx - math.floor(tw / 2) - ST, gy, P.trunkDark, ST)
+  blk(I.stem, cx + math.ceil(tw / 2), gy, P.trunkDark, ST)
   local r = math.floor(w * 0.30)
   local ccy = trunkTop - math.floor(r * 0.9)
   disc(I.leaf, cx, ccy, r, P.leafLight)
@@ -501,23 +564,25 @@ function A.tree_round(I, P, w, h, sd)
     local rr = r * 0.55
     local x = cx + math.floor(math.cos(ang) * rr)
     local y = ccy + math.floor(math.sin(ang) * rr * 0.8)
-    pset(I.bloom, x, y, (i % 2 == 0) and P.main or P.dot)
+    blk(I.bloom, x, y, (i % 2 == 0) and P.main or P.dot, ST)
   end
-  pset(I.glint, cx - math.floor(r * 0.5), ccy - math.floor(r * 0.5), P.glint)
+  blk(I.glint, cx - math.floor(r * 0.5), ccy - math.floor(r * 0.5), P.glint, ST)
 end
 
 -- broad spreading canopy with visible branches
-function A.tree_broad(I, P, w, h, sd)
+function A.tree_broad(I, P, w, h, sd, S, ST, g)
   local cx = math.floor(w / 2)
   local gy = h - 2
   local trunkTop = gy - math.floor(h * 0.24)
+  local tw = 3 * ST
   for y = trunkTop, gy do
-    pset(I.stem, cx - 1, y, P.trunk)
-    pset(I.stem, cx, y, P.trunk)
-    pset(I.stem, cx + 1, y, P.trunkDark)
+    for i = 0, tw - 1 do
+      pset(I.stem, cx - math.floor(tw / 2) + i, y,
+           (i >= tw - ST) and P.trunkDark or P.trunk)
+    end
   end
-  line(I.stem, cx, trunkTop + 1, cx - math.floor(w * 0.22), trunkTop - math.floor(h * 0.14), P.trunkDark)
-  line(I.stem, cx, trunkTop + 2, cx + math.floor(w * 0.22), trunkTop - math.floor(h * 0.12), P.trunkDark)
+  tline(I.stem, cx, trunkTop + ST, cx - math.floor(w * 0.22), trunkTop - math.floor(h * 0.14), P.trunkDark, ST)
+  tline(I.stem, cx, trunkTop + 2 * ST, cx + math.floor(w * 0.22), trunkTop - math.floor(h * 0.12), P.trunkDark, ST)
   local rx = math.floor(w * 0.38)
   local ry = math.floor(h * 0.22)
   local ccy = trunkTop - ry - math.floor(h * 0.04)
@@ -536,20 +601,23 @@ function A.tree_broad(I, P, w, h, sd)
     local ang = i * 0.9 + k * 3
     local x = cx + math.floor(math.cos(ang) * rx * 0.6)
     local y = ccy + math.floor(math.sin(ang) * ry * 0.6)
-    pset(I.bloom, x, y, (i % 3 == 0) and P.accent or P.main)
+    blk(I.bloom, x, y, (i % 3 == 0) and P.accent or P.main, ST)
   end
-  pset(I.core, cx, ccy, P.dot)
-  pset(I.glint, cx - math.floor(rx * 0.45), ccy - math.floor(ry * 0.5), P.glint)
+  blk(I.core, cx, ccy, P.dot, ST)
+  blk(I.glint, cx - math.floor(rx * 0.45), ccy - math.floor(ry * 0.5), P.glint, ST)
 end
 
 -- conical conifer
-function A.tree_conifer(I, P, w, h, sd)
+function A.tree_conifer(I, P, w, h, sd, S, ST, g)
   local cx = math.floor(w / 2)
   local gy = h - 2
   local trunkTop = gy - math.floor(h * 0.12)
+  local tw = 3 * ST
   for y = trunkTop, gy do
-    pset(I.stem, cx - 1, y, P.trunk); pset(I.stem, cx, y, P.trunk)
-    pset(I.stem, cx + 1, y, P.trunkDark)
+    for i = 0, tw - 1 do
+      pset(I.stem, cx - math.floor(tw / 2) + i, y,
+           (i >= tw - ST) and P.trunkDark or P.trunk)
+    end
   end
   local tiers = 4
   local top = math.floor(h * 0.12)
@@ -563,17 +631,17 @@ function A.tree_conifer(I, P, w, h, sd)
       local hh = math.floor(half * (0.35 + 0.65 * prog))
       for x = cx - hh, cx + hh do
         local col = P.leafLight
-        if (x - cx) > hh * 0.35 or y > y1 - 2 then col = P.leafDark end
+        if (x - cx) > hh * 0.35 or y > y1 - 2 * ST then col = P.leafDark end
         pset(I.leaf, x, y, col)
       end
     end
   end
-  pset(I.core, cx, top + 1, P.dot)
-  pset(I.glint, cx - 2, top + math.floor((bot - top) * 0.4), P.glint)
+  blk(I.core, cx, top + ST, P.dot, ST)
+  blk(I.glint, cx - 2 * ST, top + math.floor((bot - top) * 0.4), P.glint, ST)
 end
 
 -- rosette succulent: filled body, accent rim, radial leaf separation
-function A.succ_rosette(I, P, w, h, sd)
+function A.succ_rosette(I, P, w, h, sd, S, ST, g)
   local cx = math.floor(w / 2)
   local cy = h - math.floor(h * 0.38)
   local R = math.max(3, math.floor(w * 0.42))
@@ -594,17 +662,17 @@ function A.succ_rosette(I, P, w, h, sd)
     end
   end
   disc(I.core, cx, cy, math.max(1, math.floor(R * 0.3)), P.dot)
-  pset(I.glint, cx - 1, cy - 1, P.glint)
-  pset(I.glint, cx - math.floor(R * 0.6), cy - math.floor(R * 0.4), P.glint)
+  blk(I.glint, cx - g, cy - g, P.glint, g)
+  blk(I.glint, cx - math.floor(R * 0.6), cy - math.floor(R * 0.4), P.glint, g)
 end
 
 -- trailing bead chain succulent
-function A.succ_beads(I, P, w, h, sd)
+function A.succ_beads(I, P, w, h, sd, S, ST, g)
   local cx = math.floor(w / 2)
-  local gy = h - 3
+  local gy = h - 2 - S
   local top = math.floor(h * 0.2)
   local pts = {}
-  local steps = (w >= 32) and 7 or 5
+  local steps = 9
   for i = 0, steps do
     local t = i / steps
     local x = cx + math.floor(math.sin(t * 3.2 + rng(sd, 2) * 2) * (w * 0.2))
@@ -612,49 +680,51 @@ function A.succ_beads(I, P, w, h, sd)
     pts[#pts + 1] = { x, y }
   end
   for i = 2, #pts do
-    stem_to(I, pts[i - 1][1], pts[i - 1][2], pts[i][1], pts[i][2], P.leafDark)
+    stem_to(I, pts[i - 1][1], pts[i - 1][2], pts[i][1], pts[i][2], P.leafDark, S)
   end
   for i, p in ipairs(pts) do
-    bead(I, p[1], p[2], (i % 2 == 0) and 1 or 2, P)
+    bead(I, p[1], p[2], (i % 2 == 0) and math.max(1, math.floor(S / 2))
+                        or math.max(2, math.floor(S * 0.75)), P, g)
   end
-  pset(I.core, pts[1][1], pts[1][2], P.dot)
+  blk(I.core, pts[1][1], pts[1][2], P.dot, g)
 end
 
 -- bear-paw style stacked pad pairs
-function A.succ_paw(I, P, w, h, sd)
+function A.succ_paw(I, P, w, h, sd, S, ST, g)
   local cx = math.floor(w / 2)
-  local gy = h - 3
+  local gy = h - 2 - S
   local top = math.floor(h * 0.28)
-  stem_to(I, cx, gy, cx, top, P.leafDark)
-  local n = (w >= 32) and 4 or 3
-  local gap = math.max(3, math.floor((gy - top) / (n + 1)))
+  stem_to(I, cx, gy, cx, top, P.leafDark, S)
+  local n = (w >= 48) and 4 or 3
+  local gap = math.max(3 * S, math.floor((gy - top) / (n + 1)))
+  local r = math.max(2, math.floor(S * 0.75))
   for i = 0, n - 1 do
-    local y = top + 1 + i * gap
-    disc(I.bloom, cx - 2, y, 1, P.main)
-    disc(I.bloom, cx + 2, y, 1, P.main)
-    pset(I.core, cx - 3, y - 1, P.dot)
-    pset(I.core, cx + 3, y - 1, P.dot)
-    pset(I.bloomShade, cx - 1, y + 1, P.accent)
-    pset(I.bloomShade, cx + 1, y + 1, P.accent)
+    local y = top + S + i * gap
+    disc(I.bloom, cx - 2 * S, y, r, P.main)
+    disc(I.bloom, cx + 2 * S, y, r, P.main)
+    blk(I.core, cx - 3 * S, y - S, P.dot, g)
+    blk(I.core, cx + 3 * S, y - S, P.dot, g)
+    blk(I.bloomShade, cx - S, y + S, P.accent, g)
+    blk(I.bloomShade, cx + S, y + S, P.accent, g)
   end
-  pset(I.glint, cx - 3, top, P.glint)
+  blk(I.glint, cx - 3 * S, top, P.glint, g)
 end
 
 -- lithops: two split lobes with a mottled top window
-function A.succ_lithops(I, P, w, h, sd)
+function A.succ_lithops(I, P, w, h, sd, S, ST, g)
   local cx = math.floor(w / 2)
-  local gy = h - 3
+  local gy = h - 2 - S
   local cy = gy - math.floor(h * 0.24)
   local r = math.max(3, math.floor(w * 0.22))
   lobe(I.bloom, cx - r, cy, r, P.main, P.accent, cy)
   lobe(I.bloom, cx + r, cy, r, P.main, P.accent, cy)
-  line(I.bloomShade, cx, cy - r, cx, cy + r, P.accent)
-  pset(I.core, cx - r, cy - 1, P.dot)
-  pset(I.core, cx + r, cy - 1, P.dot)
-  pset(I.core, cx - 1, cy - r + 1, P.dot)
-  pset(I.core, cx + 1, cy - r + 1, P.dot)
-  pset(I.glint, cx - r + 1, cy - r + 2, P.glint)
-  pset(I.glint, cx + r - 1, cy - r + 2, P.glint)
+  tline(I.bloomShade, cx, cy - r, cx, cy + r, P.accent, g)
+  blk(I.core, cx - r, cy - g, P.dot, g)
+  blk(I.core, cx + r, cy - g, P.dot, g)
+  blk(I.core, cx - g, cy - r + g, P.dot, g)
+  blk(I.core, cx + g, cy - r + g, P.dot, g)
+  blk(I.glint, cx - r + g, cy - r + S, P.glint, g)
+  blk(I.glint, cx + r - 2 * g, cy - r + S, P.glint, g)
 end
 
 -- ---------------------------------------------------------------- assembly
@@ -662,6 +732,9 @@ local LAYER_NAMES = { "shadow", "stem", "leaf", "bloom", "bloom-shade", "core", 
 
 local function build_tile(item, outDir)
   local w, h = item.w, item.h
+  local S = math.max(1, math.floor(w / 16 + 0.5))
+  local ST = math.max(1, math.floor(w / 32 + 0.5))
+  local g = math.max(1, math.floor(S / 2 + 0.5))
   local spr = Sprite(w, h)
   spr.layers[1].name = LAYER_NAMES[1]
   local L = { shadow = spr.layers[1] }
@@ -685,10 +758,10 @@ local function build_tile(item, outDir)
     water = C("#2E6F96"), waterHi = C("#6FB6D1"),
     glint = C("#FFF3B0"), shadow = C("#1A1A20"),
   }
-  ground_shadow(I, w, h, math.floor(w / 2), P.shadow)
+  ground_shadow(I, w, h, math.floor(w / 2), P.shadow, S)
   local fn = A[item.archetype]
   if not fn then error("unknown archetype: " .. tostring(item.archetype)) end
-  fn(I, P, w, h, item.seed or item.index)
+  fn(I, P, w, h, item.seed or item.index, S, ST, g)
 
   for _, n in ipairs(LAYER_NAMES) do
     local key = ({ shadow = "shadow", stem = "stem", leaf = "leaf",
@@ -705,23 +778,23 @@ local function build_tile(item, outDir)
 end
 
 local ITEMS = {
-{index=100,slug="pu-ti-shu",w=32,h=32,main="#3F6B3A",accent="#A8CF6A",dot="#F2C14E",archetype="tree_round",seed=703},
-{index=101,slug="wu-you-shu",w=32,h=32,main="#F28C28",accent="#C75B1A",dot="#FFD84D",archetype="tree_broad",seed=710},
-{index=102,slug="suo-luo-shu",w=32,h=32,main="#F6F2E6",accent="#A8CF6A",dot="#F2C14E",archetype="tree_round",seed=717},
-{index=103,slug="feng-huang-mu",w=32,h=32,main="#E63946",accent="#F28C28",dot="#FFD84D",archetype="tree_broad",seed=724},
-{index=104,slug="lan-hua-ying",w=32,h=32,main="#6A5ACD",accent="#4A90E2",dot="#B8D9E8",archetype="tree_broad",seed=731},
-{index=105,slug="zi-teng",w=32,h=32,main="#9B7EDE",accent="#6A5ACD",dot="#A8CF6A",archetype="vine",seed=738},
-{index=106,slug="xin-yi",w=32,h=32,main="#9B7EDE",accent="#F6F2E6",dot="#F2C14E",archetype="tree_round",seed=745},
-{index=107,slug="mu-lian",w=32,h=32,main="#F6F2E6",accent="#9B7EDE",dot="#F2C14E",archetype="tree_round",seed=752},
-{index=108,slug="bai-lan",w=32,h=32,main="#F6F2E6",accent="#F2C14E",dot="#A8CF6A",archetype="tree_round",seed=759},
-{index=109,slug="shen-shan-han-xiao",w=32,h=32,main="#F6F2E6",accent="#F2C14E",dot="#3F6B3A",archetype="tree_round",seed=766},
-{index=110,slug="le-chang-han-xiao",w=32,h=32,main="#F6F2E6",accent="#F08BB4",dot="#F2C14E",archetype="tree_round",seed=773},
-{index=111,slug="feng-xiang",w=32,h=32,main="#D7263D",accent="#F28C28",dot="#F2C14E",archetype="tree_broad",seed=780},
-{index=112,slug="wu-jiu",w=32,h=32,main="#A4161A",accent="#D7263D",dot="#F2C14E",archetype="tree_broad",seed=787},
-{index=113,slug="wu-huan-zi",w=32,h=32,main="#F2C14E",accent="#A8CF6A",dot="#F6F2E6",archetype="tree_round",seed=794},
-{index=114,slug="ku-lian",w=32,h=32,main="#9B7EDE",accent="#F6F2E6",dot="#F2C14E",archetype="tree_round",seed=801},
-{index=115,slug="tan-xiang",w=32,h=32,main="#8C6440",accent="#C49A5A",dot="#F2C14E",archetype="tree_round",seed=808},
-{index=116,slug="jiang-xiang",w=32,h=32,main="#8C4A2E",accent="#5A2E1A",dot="#F2C14E",archetype="tree_round",seed=815},
+{index=100,slug="pu-ti-shu",w=64,h=64,main="#3F6B3A",accent="#A8CF6A",dot="#F2C14E",archetype="tree_round",seed=703},
+{index=101,slug="wu-you-shu",w=64,h=64,main="#F28C28",accent="#C75B1A",dot="#FFD84D",archetype="tree_broad",seed=710},
+{index=102,slug="suo-luo-shu",w=64,h=64,main="#F6F2E6",accent="#A8CF6A",dot="#F2C14E",archetype="tree_round",seed=717},
+{index=103,slug="feng-huang-mu",w=64,h=64,main="#E63946",accent="#F28C28",dot="#FFD84D",archetype="tree_broad",seed=724},
+{index=104,slug="lan-hua-ying",w=64,h=64,main="#6A5ACD",accent="#4A90E2",dot="#B8D9E8",archetype="tree_broad",seed=731},
+{index=105,slug="zi-teng",w=64,h=64,main="#9B7EDE",accent="#6A5ACD",dot="#A8CF6A",archetype="vine",seed=738},
+{index=106,slug="xin-yi",w=64,h=64,main="#9B7EDE",accent="#F6F2E6",dot="#F2C14E",archetype="tree_round",seed=745},
+{index=107,slug="mu-lian",w=64,h=64,main="#F6F2E6",accent="#9B7EDE",dot="#F2C14E",archetype="tree_round",seed=752},
+{index=108,slug="bai-lan",w=64,h=64,main="#F6F2E6",accent="#F2C14E",dot="#A8CF6A",archetype="tree_round",seed=759},
+{index=109,slug="shen-shan-han-xiao",w=64,h=64,main="#F6F2E6",accent="#F2C14E",dot="#3F6B3A",archetype="tree_round",seed=766},
+{index=110,slug="le-chang-han-xiao",w=64,h=64,main="#F6F2E6",accent="#F08BB4",dot="#F2C14E",archetype="tree_round",seed=773},
+{index=111,slug="feng-xiang",w=64,h=64,main="#D7263D",accent="#F28C28",dot="#F2C14E",archetype="tree_broad",seed=780},
+{index=112,slug="wu-jiu",w=64,h=64,main="#A4161A",accent="#D7263D",dot="#F2C14E",archetype="tree_broad",seed=787},
+{index=113,slug="wu-huan-zi",w=64,h=64,main="#F2C14E",accent="#A8CF6A",dot="#F6F2E6",archetype="tree_round",seed=794},
+{index=114,slug="ku-lian",w=64,h=64,main="#9B7EDE",accent="#F6F2E6",dot="#F2C14E",archetype="tree_round",seed=801},
+{index=115,slug="tan-xiang",w=64,h=64,main="#8C6440",accent="#C49A5A",dot="#F2C14E",archetype="tree_round",seed=808},
+{index=116,slug="jiang-xiang",w=64,h=64,main="#8C4A2E",accent="#5A2E1A",dot="#F2C14E",archetype="tree_round",seed=815},
 }
 local OUT_DIR = "C:/Atian/Project/pixel-vault/game/pixel-plants/"
 

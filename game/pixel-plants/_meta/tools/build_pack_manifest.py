@@ -76,7 +76,7 @@ def main():
             missing.append("game/pixel-plants/_meta/" + extra)
 
     doc = {
-        "generated": "2026-09-15",
+        "generated": "2026-09-17",
         "pack": PACK_REL,
         "sourceTxt": "pasted_text_20260915-060046.txt",
         "license": "MIT",

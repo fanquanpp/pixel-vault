@@ -180,7 +180,7 @@ def main():
     for (i, zh, slug, cat, main_, acc, dot, variants, arch) in T:
         base_n += 1
         assert i == base_n, (i, base_n)
-        w = h = 32 if cat == "trees" else 16
+        w = h = 64
         base = {
             "index": i, "baseIndex": i, "variantOf": None, "variantLabel": None,
             "category": cat, "categoryNameZh": CAT_ZH[cat], "nameZh": zh, "slug": slug,
@@ -213,7 +213,7 @@ def main():
         },
         "items": items,
     }
-    with open(os.path.join(OUT, "spec.json"), "w", encoding="utf-8") as f:
+    with open(os.path.join(OUT, "plant_spec.json"), "w", encoding="utf-8") as f:
         json.dump(spec, f, ensure_ascii=False, indent=1)
 
     lib = open(os.path.join(OUT, "plant_lib.lua"), encoding="utf-8").read()
@@ -237,7 +237,7 @@ def main():
                 it["index"], it["nameZh"], it["slug"], it["categoryNameZh"],
                 it["canvas"], it["canvas"], it["archetype"]))
 
-    print("spec.json:", len(items), "tiles (", len(T), "base +", len(items) - len(T), "variants )")
+    print("plant_spec.json:", len(items), "tiles (", len(T), "base +", len(items) - len(T), "variants )")
     for c, _ in CATS:
         print("  ", c, len(by_cat[c]))
     print("lua files:", ", ".join("gen_%s.lua" % c for c, _ in CATS))

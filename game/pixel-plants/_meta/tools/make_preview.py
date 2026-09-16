@@ -29,7 +29,7 @@ def main():
         spec = json.load(f)
 
     cols = 16
-    content = 56
+    content = 64
     pad = 5
     cell = content + pad * 2
     lab_h = 26
@@ -52,7 +52,7 @@ def main():
     d = ImageDraw.Draw(sheet)
 
     d.text((pad + 4, 16), "像素植物素材总览  pixel-plants", font=f_title, fill=INK)
-    d.text((pad + 4, 46), "共 %d 枚植物瓦片 + 12 组摇曳动画帧条 · 16x16 / 32x32 · 透明背景 PNG · MIT"
+    d.text((pad + 4, 46), "共 %d 枚植物瓦片 + 12 组摇曳动画帧条 · 64x64 · 透明背景 PNG · MIT"
            % len(spec["items"]), font=f_hd, fill=DIM)
 
     y = 74

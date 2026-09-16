@@ -11,7 +11,7 @@
 | game/pixel-ui-pack-hd/ | 32×32 | .aseprite（icon/glyph 层）+ .png | 6 件 |
 | game/pixel-tiles/ | 16×16 | .aseprite + .png | 8 块 |
 | game/pixel-anim/ | 16×16（落叶 32×32），4-8 帧横向帧条 | .aseprite（多帧）+ _strip.png | 8 组 |
-| game/pixel-plants/ | 16×16（树木 32×32），169 瓦片 + 12 组 4 帧帧条 | .aseprite（7 层）+ .png / _strip.png | 181 |
+| game/pixel-plants/ | 64×64，169 瓦片 + 12 组 4 帧帧条 | .aseprite（7 层）+ .png / _strip.png | 181 |
 | game/speed-rouge/ | 混合（16px 条带到 6400×1080 关卡层） | .aseprite + .png | 151 |
 | game/bianqv/ | 混合 | .aseprite + .png | 1 |
 | icons/vector/ | 矢量 | .svg | 69 |
@@ -50,7 +50,7 @@
 
 ### pixel-plants（植物像素素材）
 169 枚植物瓦片 + 12 组摇曳动画帧条，按「古典仙气 / 浪漫花语 / 本草清雅 / 树木佛意 / 野趣多肉」五类组织；文件名用拼音 kebab-case（如 `juan-er`、`man-zhu-sha-hua`），中文名与逐条来源见 `game/pixel-plants/_meta/slug-map.md`。
-- 画布：小花草本 16×16，树木 32×32；导出为透明背景 PNG，硬边无抗锯齿
+- 画布：64×64（2026-09-17 全量重绘，构图沿用原 16px / 树木 32px 的比例，细节按 4px 块呈现）；导出为透明背景 PNG，硬边无抗锯齿
 - 图层：每枚源文件统一 7 层，自下而上 `shadow / stem / leaf / bloom / bloom-shade / core / glint`，可继续编辑
 - 调色板：主色/辅色/点色按清单逐条给定，叶茎复用通用自然色板；单枚瓦片不透明颜色数控制在 4-7
 - 变体：同形换色（只替换主/辅/点色，叶茎不变），共 39 枚变体瓦片
@@ -81,6 +81,6 @@ site/social-card.png（站点分享卡）、bianqv 的 icon64 与 logo。
 ## 使用约定 / Conventions
 
 - 像素图放大请使用最近邻插值：CSS `image-rendering: pixelated`，引擎中关闭纹理过滤。
-- 像素图原生尺寸即设计尺寸（16/32px），不要缩小。
+- 像素图原生尺寸即设计尺寸（UI/地贴/动画 16px、HD 32px、植物 64px），不要缩小。
 - 所有 .aseprite 源用 Aseprite 打开即可编辑分层；导出位置与画布约定见各目录 README 级说明（本文件）。
 - 修改再分发请保留 LICENSE 声明；字体相关注意 DISCLAIMER 第 3 节。
