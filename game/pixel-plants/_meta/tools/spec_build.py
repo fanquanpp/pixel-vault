@@ -230,7 +230,7 @@ def main():
         with open(os.path.join(OUT, "gen_%s.lua" % cat), "w", encoding="utf-8") as f:
             f.write(out)
 
-    with open(os.path.join(OUT, "slug-map.md"), "w", encoding="utf-8") as f:
+    with open(os.path.join(REPO_PACK, "_meta", "slug-map.md"), "w", encoding="utf-8") as f:
         f.write("# pixel-plants 命名映射\n\n| # | 中文名 | slug | 类别 | 画布 | 原型 |\n|---|---|---|---|---|---|\n")
         for it in items:
             f.write("| %d | %s | `%s` | %s | %dx%d | %s |\n" % (
